@@ -40,7 +40,7 @@ const FilterScrollMenu = ({
 					shape='circle'
 					icon={<LeftOutlined />}
 					onClick={() => scroll('left')}
-					className='shrink-0 border-none shadow-none bg-transparent hover:bg-gray-200 text-gray-500'
+					className='shrink-0 border-purple-600! text-purple-600! hover:text-purple-700! hover:border-purple-700!'
 				/>
 
 				{/* Container cuộn (Tailwind) */}
@@ -56,8 +56,8 @@ const FilterScrollMenu = ({
               whitespace-nowrap px-5 py-2 rounded-full font-medium transition-all duration-200 border cursor-pointer
               ${
 								activeTab === location
-									? ` bg-[${theme}] text-white border-[${theme}] shadow-md` // Style khi Active
-									: `bg-white text-gray-700 border-transparent hover:bg-gray-100 shadow-sm` // Style mặc định
+									? ` bg-[#2f0d7b] text-white border-[#2f0d7b] shadow-md` // Style khi Active
+									: `bg-white text-gray-700 border-[#2f0d7b] hover:bg-gray-100 shadow-sm` // Style mặc định
 							}
             `}
 						>
@@ -71,7 +71,7 @@ const FilterScrollMenu = ({
 					shape='circle'
 					icon={<RightOutlined />}
 					onClick={() => scroll('right')}
-					className='shrink-0 border-purple-600 text-purple-600 hover:text-purple-700 hover:border-purple-700'
+					className='shrink-0 border-purple-600! text-purple-600! hover:text-purple-700! hover:border-purple-700!'
 				/>
 			</div>
 		</div>

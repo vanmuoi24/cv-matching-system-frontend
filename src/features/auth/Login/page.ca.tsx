@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const Login = () => {
 	return (
-		<div className='w-[900px] bg-white rounded-xl shadow overflow-hidden'>
+		<div className='w-[900px bg-white rounded-xl shadow overflow-hidden'>
 			<div className='h-full flex'>
 				<div className='flex-1'>
 					<div className='py-6 px-10'>
