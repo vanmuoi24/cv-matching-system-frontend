@@ -56,8 +56,8 @@ const FilterScrollMenu = ({
               whitespace-nowrap px-5 py-2 rounded-full font-medium transition-all duration-200 border cursor-pointer
               ${
 								activeTab === location
-									? ` bg-[#2f0d7b] text-white border-[#2f0d7b] shadow-md` // Style khi Active
-									: `bg-white text-gray-700 border-[#2f0d7b] hover:bg-gray-100 shadow-sm` // Style mặc định
+									? ` bg-[${theme}] text-white border-[${theme}] shadow-md` // Style khi Active
+									: `bg-white text-gray-700 border-transparent hover:bg-gray-100 shadow-sm` // Style mặc định
 							}
             `}
 						>
