@@ -18,7 +18,7 @@ const Container = ({
 	className = '',
 }: ContainerProps) => {
 	return (
-		<div className={`mx-auto w-full px-4 ${sizeMap[size]} ${className}`}>
+		<div className={`mx-auto w-full ${sizeMap[size]} ${className}`}>
 			{children}
 		</div>
 	);

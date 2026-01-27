@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import AdminLayout from '../layouts/AdminLayout';
-import Dashboard from '../features/admin/pages/Dashboard/page';
+import AdminLayout from '../layout/AdminLayout';
+import Dashboard from '../pages/Dashboard/page';
 
 const AdminRoutes = () => {
 	return (

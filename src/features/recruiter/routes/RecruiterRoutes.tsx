@@ -1,10 +1,10 @@
 import { Route, Routes } from 'react-router-dom';
 
-import RecruiterLayout from '../layouts/RecruiterLayout';
-import Home from '../features/recruiter/pages/Home/page';
-import Candidates from '../features/recruiter/pages/Candidates/page';
-import Price from '../features/recruiter/pages/Price/page';
-import Help from '../features/recruiter/pages/Help/page';
+import RecruiterLayout from '../layout/RecruiterLayout';
+import Home from '../pages/Home/page';
+import Candidates from '../pages/Candidates/page';
+import Price from '../pages/Price/page';
+import Help from '../pages/Help/page';
 const RecruiterRoutes = () => {
 	return (
 		<Routes>

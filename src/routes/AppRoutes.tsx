@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import AdminRoutes from './AdminRoutes';
-import AuthRoutes from './AuthRoutes';
-import RecruiterRoutes from './RecruiterRoutes';
-import CandidateRoutes from './CandidateRoutes';
+import AdminRoutes from '../features/admin/routes/AdminRoutes';
+import AuthRoutes from '../features/auth/routes/AuthRoutes';
+import RecruiterRoutes from '../features/recruiter/routes/RecruiterRoutes';
+import CandidateRoutes from '../features/candidate/routes/CandidateRoutes';
 import NotFound from '../shared/components/NotFound';
 
 const AppRoutes = () => {

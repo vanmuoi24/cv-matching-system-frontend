@@ -5,7 +5,7 @@ import {
 	EyeInvisibleOutlined,
 	EyeTwoTone,
 } from '@ant-design/icons';
-import googleIcon from '../../../assets/icons/googleIcon.png';
+import googleIcon from '../../../../assets/icons/googleIcon.png';
 import { Link } from 'react-router-dom';
 const Login = () => {
 	const onFinish = () => {};

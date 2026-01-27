@@ -1,11 +1,11 @@
-import bannerLogin from '../../../assets/imgs/banner-login.png';
-import googleIcon from '../../../assets/icons/googleIcon.png';
-import emailIcon from '../../../assets/icons/emailIcon.png';
+import bannerLogin from '../../.././../assets/imgs/banner-login.png';
+import googleIcon from '../../.././../assets/icons/googleIcon.png';
+import emailIcon from '../../.././../assets/icons/emailIcon.png';
 import { Link } from 'react-router-dom';
 
 const Login = () => {
 	return (
-		<div className='w-[900px bg-white rounded-xl shadow overflow-hidden'>
+		<div className='w-[900px] bg-white rounded-xl shadow overflow-hidden'>
 			<div className='h-full flex'>
 				<div className='flex-1'>
 					<div className='py-6 px-10'>
