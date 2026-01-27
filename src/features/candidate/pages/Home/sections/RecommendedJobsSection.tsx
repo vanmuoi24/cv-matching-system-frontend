@@ -3,7 +3,7 @@ import { Funnel } from 'lucide-react';
 import FilterScrollMenu from '../../../components/FilterScrollMenu/FilterScrollMenu';
 import { useState } from 'react';
 import Container from '../../../../../shared/components/Container';
-import JobCard from '../../../../../components/Card/Job/JobCard';
+import JobCard from '../../../components/Card/JobCard';
 import suggestIcon from '../../../../../assets/icons/suggestIcon.png';
 // 1. Tạo dữ liệu giả (30 jobs) để test phân trang
 const MOCK_JOBS = Array.from({ length: 30 }, (_, i) => ({

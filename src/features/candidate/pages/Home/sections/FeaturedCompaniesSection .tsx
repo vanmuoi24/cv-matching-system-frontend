@@ -87,7 +87,7 @@ const FeaturedCompanies = () => {
 								<img
 									src={company.logo}
 									alt={company.name}
-									className='max-h-full max-w-full object-contain grayscale group-hover:grays	cale-0 transition-all duration-300'
+									className='max-h-full max-w-full object-contain transition-all duration-300'
 								/>
 							</div>
 
