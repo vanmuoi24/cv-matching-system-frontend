@@ -72,16 +72,7 @@ const AdminLayout = () => {
       icon: <ShopOutlined />,
       label: <Link to="/admin/company">Quản lí công ty</Link>,
     },
-    {
-      key: "/admin/statistics",
-      icon: <BarChartOutlined />,
-      label: <Link to="/admin/statistics">Thống kê</Link>,
-    },
-    {
-      key: "/admin/settings",
-      icon: <SettingOutlined />,
-      label: <Link to="/admin/settings">Cài đặt</Link>,
-    },
+    
   ];
 
   const dropdownItems = [
