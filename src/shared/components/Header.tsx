@@ -1,7 +1,13 @@
 import Navbar from './Navbar';
 import Container from './Container';
 import notification from '../../assets/imgs/notification-bar.png';
-const Header = () => {
+
+interface IHeaderProps {
+	navItems: { to: string; label: string }[];
+	isRecruiter?: boolean;
+}
+
+const Header = ({ navItems, isRecruiter }: IHeaderProps) => {
 	return (
 		<header>
 			<div className='flex items-center justify-center gap-2 '>
@@ -9,13 +15,19 @@ const Header = () => {
 					<img src={notification} alt='notification' />
 				</div>
 				<p className='text-[15px] font-semibold'>
-					Ứng tuyển 1 chạm - Mọi lúc mọi nơi{' '}
-					<span className='font-bold'>CV24h: Tìm Việc Nhanh</span>
+					{isRecruiter ? (
+						'Thông báo tức thì, phản hồi hồ sơ nhanh & dễ dàng hơn!'
+					) : (
+						<>
+							Ứng tuyển 1 chạm - Mọi lúc mọi nơi
+							<span className='font-bold ml-2'> CV24h: Tìm Việc Nhanh</span>
+						</>
+					)}
 				</p>
 			</div>
-			<div className='bg-[#451fa3]'>
+			<div className={isRecruiter ? 'bg-[#f6f6f6]' : 'bg-[#451fa3]'}>
 				<Container>
-					<Navbar />
+					<Navbar navItems={navItems} isRecruiter={isRecruiter} />
 				</Container>
 			</div>
 		</header>

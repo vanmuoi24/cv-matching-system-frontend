@@ -1,13 +1,6 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import NotFound from '../features/candidate/pages/NotFound/page';
 
-import AuthLayout from '../layouts/AuthLayout';
-import Login from '../features/auth/Login/page';
-import Register from '../features/auth/Register/page';
-import CandidateLayout from '../layouts/CandidateLayout';
-import Job from '../features/candidate/pages/Job/page';
-import RecruiterLayout from '../layouts/RecruiterLayout';
-import Home from '../features/candidate/pages/Home/pages';
 import AdminSidebar from '../layouts/AdminLayout';
 import Usermanager from '../features/admin/components/UserManager/Usermanager';
 
@@ -16,6 +9,10 @@ import AICVFilter from '../features/admin/components/AICVFilter/AICVFilter';
 import JobCvAIFilter from '../features/admin/components/AICVFilter/JobCvAIFilter';
 import Dash from '../features/admin/components/Dash/Dash';
 import Company from '../features/admin/components/Company/Company';
+import AdminRoutes from '../features/admin/routes/AdminRoutes';
+import AuthRoutes from '../features/auth/routes/AuthRoutes';
+import RecruiterRoutes from '../features/recruiter/routes/RecruiterRoutes';
+import CandidateRoutes from '../features/candidate/routes/CandidateRoutes';
 
 const AppRoutes = () => {
 	return (
@@ -37,29 +34,12 @@ const AppRoutes = () => {
 					<Route path='/admin/statistics' element={<AdminSidebar />} />
 				</Route>
 			</Route>
+			<Route path='/' element={<Navigate to='/ca' replace />} />
 
-			<Route>
-				{/* AUTH */}
-				<Route element={<AuthLayout />}>
-					<Route path='/login' element={<Login />} />
-					<Route path='/register' element={<Register />} />
-				</Route>
-			</Route>
-
-			<Route>
-				{/* USER */}
-				<Route element={<CandidateLayout />}>
-					<Route path='/' element={<Home />} />
-					<Route path='/jobs' element={<Job />} />
-				</Route>
-			</Route>
-
-			<Route>
-				{/* RECRUITER */}
-				<Route element={<RecruiterLayout />}>
-					<Route path='/recruiter' element={<Home />} />
-				</Route>
-			</Route>
+			<Route path='/ca/*' element={<CandidateRoutes />} />
+			<Route path='/re/*' element={<RecruiterRoutes />} />
+			<Route path='/auth/*' element={<AuthRoutes />} />
+			<Route path='/admin/*' element={<AdminRoutes />} />
 
 			{/* 404 global */}
 			<Route path='*' element={<NotFound />} />
