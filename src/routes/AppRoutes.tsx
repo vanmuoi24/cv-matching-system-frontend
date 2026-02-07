@@ -17,8 +17,6 @@ import CandidateRoutes from '../features/candidate/routes/CandidateRoutes';
 const AppRoutes = () => {
 	return (
 		<Routes>
-			
-
 			<Route>
 				{/* ADMIN */}
 				<Route element={<AdminSidebar />}>
