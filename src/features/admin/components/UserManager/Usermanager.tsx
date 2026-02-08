@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input } from "antd";
 import {
@@ -8,43 +8,31 @@ import {
   UserOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import type { IUser } from "../../../../types/TypeUser";
+import { GetListUser } from "../../../../service/Api/User/UserAPI";
 
 const UserManager = () => {
   const actionRef = useRef<any>(null);
   const [searchText, setSearchText] = useState("");
+const [dataUser, setDataUser] = useState<IUser[]>([]);
+  const fetchData = async () => {
+    try {
+      let data = await GetListUser();
+      if(data && data.code === 1000 && data.result){
+        setDataUser(data.result);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
-  // 🔹 DATA GIẢ – FORMAT GIỐNG BACKEND
-  const dataSource = [
-    {
-      id: 1,
-      full_name: "Nguyễn Văn A",
-      email: "a@gmail.com",
-      role: "ADMIN",
-      status: "ACTIVE",
-      createAt: "2026-01-24T10:30:00",
-    },
-    {
-      id: 2,
-      full_name: "Trần Thị B",
-      email: "b@gmail.com",
-      role: "USER",
-      status: "ACTIVE",
-      createAt: "2026-01-23T09:20:00",
-    },
-    {
-      id: 3,
-      full_name: "Lê Văn C",
-      email: "c@gmail.com",
-      role: "USER",
-      status: "LOCKED",
-      createAt: "2026-01-22T08:10:00",
-    },
-  ];
-
+  useEffect(()=>{
+    fetchData();
+  }, [])
   const columns = [
     {
       title: "Người dùng",
-      dataIndex: "full_name",
+      dataIndex: "fullName",
       width: 220,
       render: (text: string) => (
         <span>
@@ -126,7 +114,7 @@ const UserManager = () => {
         actionRef={actionRef}
         rowKey="id"
         columns={columns as any}
-        dataSource={dataSource}
+        dataSource={dataUser}
         search={false}
         headerTitle="Danh sách người dùng"
         toolBarRender={() => [

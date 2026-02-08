@@ -1,15 +1,20 @@
 
-import type { Axios } from "axios"
-import type { Ilogin } from "../../../type/Auth"
+
+import type { Ilogin } from "../../../types/Auth.ts"
 import instance from "../../Axios/Axios.ts"
-import type { AxiosResponse } from "../../../type/ResponseAPI"
+import type { AxiosResponse } from "../../../types/ResponseAPI.ts"
 
 
 const LoginApi =(data:Ilogin) :Promise<AxiosResponse>=>{
 return instance.post('/users/login',data)    
 }
 
+ const RegisterApi =()=>{
+
+ }
+
 
 export  {
-    LoginApi
+    LoginApi,
+    RegisterApi
 }   

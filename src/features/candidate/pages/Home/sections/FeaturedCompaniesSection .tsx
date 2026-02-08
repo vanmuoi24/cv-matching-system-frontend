@@ -1,53 +1,35 @@
 import { RiseOutlined } from '@ant-design/icons';
 import achieveIcon from '../../../../../assets/icons/achieveIcon.png';
-import momo from '../../../../../assets/imgs/momo.webp';
-import maison from '../../../../../assets/imgs/maison.jpeg';
-import doji from '../../../../../assets/imgs/doji.jpeg';
-import abbott from '../../../../../assets/imgs/abbott.jpeg';
-import dhg from '../../../../../assets/imgs/dhg.png';
-import matbao from '../../../../../assets/imgs/matbao.png';
+
 import Container from '../../../../../shared/components/Container';
-// 1. Mock Data (Dữ liệu giả lập các công ty trong hình)
-const COMPANIES = [
-	{
-		id: 1,
-		name: 'MoMo',
-		logo: momo,
-		jobCount: 21,
-	},
-	{
-		id: 2,
-		name: 'Maison',
-		logo: maison,
-		jobCount: 30,
-	},
-	{
-		id: 3,
-		name: 'Doji',
-		logo: doji,
-		jobCount: 5,
-	},
-	{
-		id: 4,
-		name: 'Abbott',
-		logo: abbott,
-		jobCount: 19,
-	},
-	{
-		id: 5,
-		name: 'DHG Pharma',
-		logo: dhg,
-		jobCount: 26,
-	},
-	{
-		id: 6,
-		name: 'Matbao',
-		logo: matbao,
-		jobCount: 147,
-	},
-];
+import { GetListCompany } from '../../../../../service/Api/Company/Company';
+import type { ICompany } from '../../../../../types/TypeCompany';
+import { useEffect, useState } from 'react';
+
 
 const FeaturedCompanies = () => {
+
+
+	const [dataCompany, setDataCompany] = useState<ICompany[]>([]);
+	const fechDataCompany = async () => {
+		try {
+			const res = await GetListCompany();
+			if (res && res.code === 1000 && res.result) {
+				setDataCompany(res.result);
+			} else {
+				console.error('Lỗi khi lấy danh sách công ty:', res?.message || 'Không có thông tin lỗi');
+			}
+		} catch (error) {
+			console.error('Lỗi khi gọi API lấy danh sách công ty:', error);
+		}
+	}
+
+
+
+	useEffect(()=>{
+		fechDataCompany();
+	},[])
+
 	return (
 		<div className='bg-[#fffff8e0] py-30 '>
 			<Container>
@@ -71,7 +53,7 @@ const FeaturedCompanies = () => {
 				{/* --- LIST COMPANIES (GRID / SCROLL) --- */}
 				{/* Sử dụng Grid để tự động xuống dòng trên mobile, hoặc flex để cuộn ngang */}
 				<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
-					{COMPANIES.map((company) => (
+					{dataCompany.map((company) => (
 						<div
 							key={company.id}
 							className='
@@ -85,7 +67,7 @@ const FeaturedCompanies = () => {
 							{/* Logo Container */}
 							<div className='w-full h-20 flex items-center justify-center'>
 								<img
-									src={company.logo}
+									src={company.logoUrl}
 									alt={company.name}
 									className='max-h-full max-w-full object-contain transition-all duration-300'
 								/>
@@ -94,7 +76,7 @@ const FeaturedCompanies = () => {
 							{/* Job Count Info */}
 							<div className='bg-gray-50 rounded-full px-3 py-1 text-xs font-medium text-gray-600 flex items-center gap-1 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors'>
 								<RiseOutlined />
-								<span>{company.jobCount} vị trí đang tuyển</span>
+								<span>{company.job} vị trí đang tuyển</span>
 							</div>
 						</div>
 					))}
@@ -105,3 +87,7 @@ const FeaturedCompanies = () => {
 };
 
 export default FeaturedCompanies;
+function fechDataCompany() {
+	throw new Error('Function not implemented.');
+}
+

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input, Avatar } from "antd";
 import {
@@ -8,25 +8,27 @@ import {
   BankOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import { GetListCompany } from "../../../../service/Api/Company/Company";
+import type { ICompany } from "../../../../types/TypeCompany";
 
 const Company = () => {
   const actionRef = useRef(null);
   const [searchText, setSearchText] = useState("");
+  const [dataCompany, setDataCompany] = useState<ICompany[]>([]);
 
-  // 🔹 DATA GIẢ – ĐÚNG SCHEMA COMPANIES
-  const dataSource = [
-    {
-      id: 1,
-      name: "Công ty ABC",
-      description: "Công ty hàng đầu trong lĩnh vực công nghệ.",
-      website: "https://www.abc.com",
-      logo_url: "https://via.placeholder.com/40",
-      owner_id: 1001,
-      status: "ACTIVE",
-      created_at: "2024-01-10",
-    },
-  ];
 
+  const fechdataCompany = async () => {
+
+    let res = await GetListCompany();
+    if (res && res.code === 1000 && res.result) {
+      setDataCompany(res.result);
+    }
+  }
+
+  useEffect(()=>{
+    fechdataCompany();
+  },[])
+ 
   const columns = [
     {
       title: "Công ty",
@@ -55,11 +57,7 @@ const Company = () => {
       width: 280,
       ellipsis: true,
     },
-    {
-      title: "Owner ID",
-      dataIndex: "owner_id",
-      width: 120,
-    },
+   
     {
       title: "Trạng thái",
       dataIndex: "status",
@@ -72,7 +70,7 @@ const Company = () => {
     },
     {
       title: "Ngày tạo",
-      dataIndex: "created_at",
+      dataIndex: "createAt",
       width: 160,
     },
     {
@@ -119,7 +117,7 @@ const Company = () => {
         actionRef={actionRef}
         rowKey="id"
         columns={columns as any}
-        dataSource={dataSource.filter(
+        dataSource={dataCompany.filter(
           (item) =>
             item.name
               .toLowerCase()
