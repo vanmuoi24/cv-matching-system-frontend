@@ -6,7 +6,6 @@ export interface IApplication {
   similarityScore?: number | null;
   status: string;        
   appliedAt: string;    
-
   candidate?: IUser;  
   job?: IJob;          
 }

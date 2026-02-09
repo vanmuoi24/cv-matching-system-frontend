@@ -10,25 +10,47 @@ import {
 } from "@ant-design/icons";
 import { GetListCompany } from "../../../../service/Api/Company/Company";
 import type { ICompany } from "../../../../types/TypeCompany";
+import AddNewCompany from "./Model/AddNewCompany";
+import EditCompany from "./Model/EditCompany";
+
 
 const Company = () => {
   const actionRef = useRef(null);
   const [searchText, setSearchText] = useState("");
   const [dataCompany, setDataCompany] = useState<ICompany[]>([]);
-
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<ICompany | null>(null);
 
   const fechdataCompany = async () => {
-
     let res = await GetListCompany();
     if (res && res.code === 1000 && res.result) {
       setDataCompany(res.result);
     }
-  }
+  };
 
-  useEffect(()=>{
+  const handleAddSubmit = async (data: Partial<ICompany>) => {
+    // TODO: Implement your API call to add the company
+    await fechdataCompany();
+    setAddModalVisible(false);
+  };
+
+  const handleEditSubmit = async (data: Partial<ICompany>) => {
+    // TODO: Implement your API call to update the company
+    await fechdataCompany();
+    setEditModalVisible(false);
+    setSelectedCompany(null);
+  };
+
+  const handleEditClick = (record: ICompany) => {
+    setSelectedCompany(record);
+    setEditModalVisible(true);
+  };
+
+  useEffect(() => {
     fechdataCompany();
-  },[])
- 
+  }, []);
+
   const columns = [
     {
       title: "Công ty",
@@ -57,7 +79,7 @@ const Company = () => {
       width: 280,
       ellipsis: true,
     },
-   
+
     {
       title: "Trạng thái",
       dataIndex: "status",
@@ -77,9 +99,9 @@ const Company = () => {
       title: "Thao tác",
       width: 160,
       fixed: "right",
-      render: () => (
+      render: (_: any, record: any) => (
         <Space size="small">
-          <Button type="link" icon={<EditOutlined />}>
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
           <Button type="link" danger icon={<DeleteOutlined />}>
@@ -133,6 +155,7 @@ const Company = () => {
             key="add"
             type="primary"
             icon={<PlusOutlined />}
+            onClick={() => setAddModalVisible(true)}
           >
             Thêm công ty
           </Button>,
@@ -149,6 +172,22 @@ const Company = () => {
           setting: true,
         }}
         scroll={{ x: 1200 }}
+      />
+
+      <AddNewCompany
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSubmit={handleAddSubmit}
+      />
+
+      <EditCompany
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setSelectedCompany(null);
+        }}
+        onSubmit={handleEditSubmit}
+        initialData={selectedCompany || undefined}
       />
     </div>
   );

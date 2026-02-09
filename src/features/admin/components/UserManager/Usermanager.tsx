@@ -10,11 +10,15 @@ import {
 } from "@ant-design/icons";
 import type { IUser } from "../../../../types/TypeUser";
 import { GetListUser } from "../../../../service/Api/User/UserAPI";
+import { AddNewUser, EditUser } from "./Model";
 
 const UserManager = () => {
   const actionRef = useRef<any>(null);
   const [searchText, setSearchText] = useState("");
-const [dataUser, setDataUser] = useState<IUser[]>([]);
+  const [dataUser, setDataUser] = useState<IUser[]>([]);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const fetchData = async () => {
     try {
       let data = await GetListUser();
@@ -24,6 +28,24 @@ const [dataUser, setDataUser] = useState<IUser[]>([]);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
+  };
+
+  const handleAddSubmit = async (data: Partial<IUser>) => {
+    // TODO: Implement your API call to add the user
+    await fetchData();
+    setAddModalVisible(false);
+  };
+
+  const handleEditSubmit = async (data: Partial<IUser>) => {
+    // TODO: Implement your API call to update the user
+    await fetchData();
+    setEditModalVisible(false);
+    setSelectedUser(null);
+  };
+
+  const handleEditClick = (record: IUser) => {
+    setSelectedUser(record);
+    setEditModalVisible(true);
   };
 
   useEffect(()=>{
@@ -74,9 +96,9 @@ const [dataUser, setDataUser] = useState<IUser[]>([]);
     {
       title: "Thao tác",
       width: 180,
-      render: () => (
+      render: (_: any, record: any) => (
         <Space size="small">
-          <Button type="link" icon={<EditOutlined />} size="small">
+          <Button type="link" icon={<EditOutlined />} size="small" onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
           <Button type="link" danger icon={<DeleteOutlined />} size="small">
@@ -118,7 +140,7 @@ const [dataUser, setDataUser] = useState<IUser[]>([]);
         search={false}
         headerTitle="Danh sách người dùng"
         toolBarRender={() => [
-          <Button key="add" type="primary" icon={<PlusOutlined />}>
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setAddModalVisible(true)}>
             Thêm người dùng
           </Button>,
         ]}
@@ -134,6 +156,22 @@ const [dataUser, setDataUser] = useState<IUser[]>([]);
           setting: true,
         }}
         scroll={{ x: 1000 }}
+      />
+
+      <AddNewUser
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSubmit={handleAddSubmit}
+      />
+
+      <EditUser
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setSelectedUser(null);
+        }}
+        onSubmit={handleEditSubmit}
+        initialData={selectedUser || undefined}
       />
     </div>
   );
