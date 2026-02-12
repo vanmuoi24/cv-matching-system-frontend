@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input } from "antd";
 import {
@@ -9,8 +9,9 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import type { IUser } from "../../../../types/TypeUser";
-import { GetListUser } from "../../../../service/Api/User/UserAPI";
+import { GetListUser, CreateUser, UpdateUser, DeleteUser } from "../../../../service/Api/User/UserAPI";
 import { AddNewUser, EditUser } from "./Model";
+import { message, Modal } from "antd";
 
 const UserManager = () => {
   const actionRef = useRef<any>(null);
@@ -22,7 +23,7 @@ const UserManager = () => {
   const fetchData = async () => {
     try {
       let data = await GetListUser();
-      if(data && data.code === 1000 && data.result){
+      if (data && data.code === 1000 && data.result) {
         setDataUser(data.result);
       }
     } catch (error) {
@@ -31,16 +32,55 @@ const UserManager = () => {
   };
 
   const handleAddSubmit = async (data: Partial<IUser>) => {
-    // TODO: Implement your API call to add the user
-    await fetchData();
-    setAddModalVisible(false);
+    try {
+      const res = await CreateUser(data);
+      if (res && res.code === 1000) {
+        await fetchData();
+        setAddModalVisible(false);
+        message.success("Thêm người dùng thành công");
+      } else {
+        message.error(res.message || "Thêm người dùng thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi thêm người dùng");
+    }
   };
 
   const handleEditSubmit = async (data: Partial<IUser>) => {
-    // TODO: Implement your API call to update the user
-    await fetchData();
-    setEditModalVisible(false);
-    setSelectedUser(null);
+    if (!selectedUser) return;
+    try {
+      const res = await UpdateUser(selectedUser.id, data);
+      if (res && res.code === 1000) {
+        await fetchData();
+        setEditModalVisible(false);
+        setSelectedUser(null);
+        message.success("Cập nhật người dùng thành công");
+      } else {
+        message.error(res.message || "Cập nhật người dùng thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi cập nhật người dùng");
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa người dùng này không?',
+      onOk: async () => {
+        try {
+          const res = await DeleteUser(id);
+          if (res && res.code === 1000) {
+            message.success("Xóa người dùng thành công");
+            await fetchData();
+          } else {
+            message.error(res.message || "Xóa người dùng thất bại");
+          }
+        } catch (error) {
+          message.error("Có lỗi xảy ra khi xóa");
+        }
+      }
+    });
   };
 
   const handleEditClick = (record: IUser) => {
@@ -48,7 +88,7 @@ const UserManager = () => {
     setEditModalVisible(true);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchData();
   }, [])
   const columns = [
@@ -101,7 +141,7 @@ const UserManager = () => {
           <Button type="link" icon={<EditOutlined />} size="small" onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
-          <Button type="link" danger icon={<DeleteOutlined />} size="small">
+          <Button type="link" danger icon={<DeleteOutlined />} size="small" onClick={() => handleDelete(record.id)}>
             Xóa
           </Button>
         </Space>
@@ -111,7 +151,6 @@ const UserManager = () => {
 
   return (
     <div>
-      {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
           Quản lý người dùng
@@ -121,7 +160,6 @@ const UserManager = () => {
         </p>
       </div>
 
-      {/* Search UI (chỉ giao diện) */}
       <Input
         placeholder="Tìm theo tên hoặc email..."
         prefix={<SearchOutlined />}
@@ -131,7 +169,6 @@ const UserManager = () => {
         style={{ width: 400, marginBottom: 16 }}
       />
 
-      {/* Table */}
       <ProTable
         actionRef={actionRef}
         rowKey="id"
