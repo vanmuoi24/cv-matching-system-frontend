@@ -1,4 +1,4 @@
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input, Avatar } from "antd";
 import {
@@ -8,11 +8,11 @@ import {
   BankOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import { GetListCompany } from "../../../../service/Api/Company/Company";
+import { GetListCompany, CreateCompany, UpdateCompany, DeleteCompany } from "../../../../service/Api/Company/Company";
 import type { ICompany } from "../../../../types/TypeCompany";
 import AddNewCompany from "./Model/AddNewCompany";
 import EditCompany from "./Model/EditCompany";
-
+import { message, Modal } from "antd";
 
 const Company = () => {
   const actionRef = useRef(null);
@@ -29,17 +29,66 @@ const Company = () => {
     }
   };
 
-  const handleAddSubmit = async (data: Partial<ICompany>) => {
-    // TODO: Implement your API call to add the company
-    await fechdataCompany();
-    setAddModalVisible(false);
+  const handleAddSubmit = async (data: any) => {
+    try {
+      const res = await CreateCompany(data);
+      if (res && res.code === 1000) {
+        await fechdataCompany();
+        setAddModalVisible(false);
+        message.success("Thêm công ty thành công");
+      } else {
+        message.error(res.message || "Thêm công ty thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi thêm công ty");
+    }
   };
 
-  const handleEditSubmit = async (data: Partial<ICompany>) => {
-    // TODO: Implement your API call to update the company
-    await fechdataCompany();
-    setEditModalVisible(false);
-    setSelectedCompany(null);
+  const handleEditSubmit = async (data: any) => {
+    if (!selectedCompany) return;
+
+    try {
+      const formData = new FormData();
+      Object.keys(data).forEach(key => {
+        if (key === 'logoUrl' && data[key] instanceof File) {
+          formData.append('logo', data[key]);
+        } else if (data[key] !== undefined && key !== 'logoUrl') {
+          formData.append(key, data[key]);
+        }
+      });
+
+      const res = await UpdateCompany(selectedCompany.id, formData);
+      if (res && res.code === 1000) {
+        await fechdataCompany();
+        setEditModalVisible(false);
+        setSelectedCompany(null);
+        message.success("Cập nhật công ty thành công");
+      } else {
+        message.error(res.message || "Cập nhật công ty thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi cập nhật công ty");
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa công ty này không?',
+      onOk: async () => {
+        try {
+          const res = await DeleteCompany(id);
+          if (res && res.code === 1000) {
+            message.success("Xóa công ty thành công");
+            await fechdataCompany();
+          } else {
+            message.error(res.message || "Xóa công ty thất bại");
+          }
+        } catch (error) {
+          message.error("Có lỗi xảy ra khi xóa");
+        }
+      }
+    });
   };
 
   const handleEditClick = (record: ICompany) => {
@@ -104,7 +153,7 @@ const Company = () => {
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
-          <Button type="link" danger icon={<DeleteOutlined />}>
+          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
             Xóa
           </Button>
         </Space>
@@ -114,7 +163,6 @@ const Company = () => {
 
   return (
     <div>
-      {/* HEADER */}
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
           🏢 Quản lý công ty
@@ -124,7 +172,6 @@ const Company = () => {
         </p>
       </div>
 
-      {/* SEARCH */}
       <Input
         placeholder="Tìm theo tên công ty hoặc website..."
         prefix={<SearchOutlined />}
@@ -134,7 +181,6 @@ const Company = () => {
         style={{ width: 420, marginBottom: 16 }}
       />
 
-      {/* TABLE */}
       <ProTable
         actionRef={actionRef}
         rowKey="id"

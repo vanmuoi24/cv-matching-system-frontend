@@ -1,6 +1,13 @@
 
-
 export interface Ilogin {
-    email:String,
-    password:String,
+    email: string;
+    password: string;
+}
+
+export interface IRegister {
+    fullName: string;
+    email: string;
+    password: string;
+    confirmPassword?: string;
+    role?: string;
 }

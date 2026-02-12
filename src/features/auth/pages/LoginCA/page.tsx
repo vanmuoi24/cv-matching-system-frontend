@@ -26,10 +26,9 @@ const Login = () => {
       const data = res
 
       if (data.code === 1000 && data.result) {
-        // Ví dụ backend trả token
         localStorage.setItem('token', data.result.token);
-		localStorage.setItem('user', JSON.stringify(data.result.user));
-        navigate('/'); // về trang chủ
+        localStorage.setItem('user', JSON.stringify(data.result.user));
+        navigate('/');
       } else {
         setError(data.message || 'Đăng nhập thất bại');
       }

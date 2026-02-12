@@ -2,15 +2,17 @@ import axios from "axios";
 
 const instance = axios.create({
   baseURL: "http://localhost:8080",
-  withCredentials: true, // Cho phép gửi cookie với request
+  withCredentials: true,
 });
 
-// 🧩 Interceptor để đính kèm token vào headers
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
-    if (token) {
+    const publicEndpoints = ["/users/login", "/users/register", "/users/refresh"];
+    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
+
+    if (token && !isPublicEndpoint) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
 
@@ -19,7 +21,6 @@ instance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🧩 Interceptor xử lý lỗi 401 (hết hạn token)
 instance.interceptors.response.use(
   (response) => response.data,
   async (error) => {
@@ -28,12 +29,10 @@ instance.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        // Gọi API refresh token (nếu có)
-        await axios.get("http://localhost:8081/auth/refresh", {
+        await axios.get("http://localhost:8080/auth/refresh", {
           withCredentials: true,
         });
 
-        // Sau khi refresh, lấy lại access token mới
         const newAccessToken = localStorage.getItem("token");
         if (newAccessToken) {
           originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
@@ -43,8 +42,8 @@ instance.interceptors.response.use(
       } catch (err) {
         console.error("Refresh token failed, redirecting to login...");
         localStorage.removeItem("accessToken");
-        localStorage.removeItem("user"); // Nếu bạn có lưu user
-  
+        localStorage.removeItem("user");
+
       }
     }
 
