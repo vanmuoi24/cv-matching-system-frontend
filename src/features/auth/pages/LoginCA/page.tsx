@@ -20,8 +20,13 @@ const Login = () => {
 						<div className='mb-6'>
 							<input
 								type='text'
+								className='w-full text-[14px] font-semibold border border-[#4fccff] rounded-lg p-2 outline-none focus:shadow-[0_0_0_3px_rgba(79,204,255,0.15)] mb-3'
+								placeholder='Nhập email của bạn'
+							/>
+							<input
+								type='password'
 								className='w-full text-[14px] font-semibold border border-[#4fccff] rounded-lg p-2 outline-none focus:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'
-								placeholder='Nhập số điện thoại của bạn'
+								placeholder='Nhập mật khẩu của bạn'
 							/>
 							<button className='border w-full rounded-lg border-none bg-[#5932bc] text-white text-[14px] py-2 mt-4 font-semibold hover:bg-[#2f0d7b] transition duration-300 cursor-pointer'>
 								Tiếp tục
@@ -41,7 +46,7 @@ const Login = () => {
 									</div>
 								</button>
 							</div>
-							<div className=''>
+							{/* <div className=''>
 								<button className='w-full flex border border-[#dfdfdf] rounded-lg p-2 outline-none cursor-pointer transition duration-300 hover:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'>
 									<img src={emailIcon} className='w-6' alt='email icon' />
 									<div className='flex-1'>
@@ -50,7 +55,7 @@ const Login = () => {
 										</p>
 									</div>
 								</button>
-							</div>
+							</div> */}
 							<div className='mt-5 text-[12px] font-medium'>
 								<p>
 									Bằng việc đăng nhập, tôi đồng ý chia sẻ thông tin cá nhân của
