@@ -6,10 +6,7 @@ import { GetListCompany } from '../../../../../service/Api/Company/Company';
 import type { ICompany } from '../../../../../types/TypeCompany';
 import { useEffect, useState } from 'react';
 
-
 const FeaturedCompanies = () => {
-
-
 	const [dataCompany, setDataCompany] = useState<ICompany[]>([]);
 	const fechDataCompany = async () => {
 		try {
@@ -17,18 +14,19 @@ const FeaturedCompanies = () => {
 			if (res && res.code === 1000 && res.result) {
 				setDataCompany(res.result);
 			} else {
-				console.error('Lỗi khi lấy danh sách công ty:', res?.message || 'Không có thông tin lỗi');
+				console.error(
+					'Lỗi khi lấy danh sách công ty:',
+					res?.message || 'Không có thông tin lỗi',
+				);
 			}
 		} catch (error) {
 			console.error('Lỗi khi gọi API lấy danh sách công ty:', error);
 		}
-	}
+	};
 
-
-
-	useEffect(()=>{
+	useEffect(() => {
 		fechDataCompany();
-	},[])
+	}, []);
 
 	return (
 		<div className='bg-[#fffff8e0] py-30 '>
@@ -53,7 +51,7 @@ const FeaturedCompanies = () => {
 				{/* --- LIST COMPANIES (GRID / SCROLL) --- */}
 				{/* Sử dụng Grid để tự động xuống dòng trên mobile, hoặc flex để cuộn ngang */}
 				<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
-					{dataCompany.map((company) => (
+					{dataCompany.slice(0, 6).map((company) => (
 						<div
 							key={company.id}
 							className='
@@ -90,4 +88,3 @@ export default FeaturedCompanies;
 function fechDataCompany() {
 	throw new Error('Function not implemented.');
 }
-

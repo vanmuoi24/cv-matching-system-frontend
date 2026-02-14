@@ -118,17 +118,13 @@ const RecommendedJobsSection = () => {
 						</h2>
 					</div>
 					<div className=' my-10 flex items-center gap-50'>
-						<div className='flex-1'>
-							<Select
-								{...sProps}
-								className='w-full font-semibold py-2! rounded-md!'
-								prefix={
-									<p className='flex items-center gap-1 text-[14px] font-semibold text-gray-400'>
-										<Funnel width={18} />
-										Lọc theo:{' '}
-									</p>
-								}
-							/>
+						<div className='flex-1 flex items-center gap-2'>
+							<div className='flex items-center gap-1 text-[14px] font-semibold text-gray-400 whitespace-nowrap'>
+								<Funnel width={18} />
+								Lọc theo:
+							</div>
+
+							<Select {...sProps} className='flex-1 font-semibold rounded-md' />
 						</div>
 						<div className='w-[750px] flex justify-end'>
 							<FilterScrollMenu

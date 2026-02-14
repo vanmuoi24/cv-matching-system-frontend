@@ -4,6 +4,7 @@ import bannerLogin from '../../../../assets/imgs/banner-login.png';
 import googleIcon from '../../../../assets/icons/googleIcon.png';
 import emailIcon from '../../../../assets/icons/emailIcon.png';
 import { LoginApi } from '../../../../service/Api/Auth/Auth';
+import { message } from 'antd';
 
 const Login = () => {
 	const [email, setEmail] = useState('');
@@ -28,6 +29,7 @@ const Login = () => {
 			if (data.code === 1000 && data.result) {
 				localStorage.setItem('token', data.result.token);
 				localStorage.setItem('user', JSON.stringify(data.result.user));
+				message.success('Đăng nhập thành công');
 				navigate('/');
 			} else {
 				setError(data.message || 'Đăng nhập thất bại');
@@ -100,14 +102,21 @@ const Login = () => {
 									</p>
 								</div>
 							</button>
-
 							<button className='w-full flex border border-[#dfdfdf] rounded-lg p-2 outline-none cursor-pointer transition duration-300 hover:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'>
 								<img src={emailIcon} className='w-6' alt='email icon' />
 								<div className='flex-1'>
 									<p className='text-[14px] font-medium'>Đăng nhập với Email</p>
 								</div>
 							</button>
-
+							<div className='text-center text-[14px] font-semibold mt-3'>
+								Bạn chưa có tài khoản?{' '}
+								<Link
+									to='/auth/ca/register'
+									className='text-blue-500 hover:underline'
+								>
+									Đăng ký
+								</Link>
+							</div>
 							<div className='mt-5'>
 								<Link
 									to='/'

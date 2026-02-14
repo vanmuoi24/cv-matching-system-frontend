@@ -9,6 +9,10 @@ const navItems = [
 ];
 
 function CandidateLayout() {
+	const user = localStorage.getItem('user');
+	if (user && JSON.parse(user).role === 'RECRUITER') {
+		localStorage.clear();
+	}
 	return (
 		<>
 			<Header navItems={navItems} isRecruiter={false} />
