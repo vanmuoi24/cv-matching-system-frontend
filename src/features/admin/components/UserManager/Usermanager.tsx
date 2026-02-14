@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input } from "antd";
 import {
@@ -8,43 +8,93 @@ import {
   UserOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import type { IUser } from "../../../../types/TypeUser";
+import { GetListUser, CreateUser, UpdateUser, DeleteUser } from "../../../../service/Api/User/UserAPI";
+import { AddNewUser, EditUser } from "./Model";
+import { message, Modal } from "antd";
 
 const UserManager = () => {
   const actionRef = useRef<any>(null);
   const [searchText, setSearchText] = useState("");
+  const [dataUser, setDataUser] = useState<IUser[]>([]);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+  const fetchData = async () => {
+    try {
+      let data = await GetListUser();
+      if (data && data.code === 1000 && data.result) {
+        setDataUser(data.result);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
-  // 🔹 DATA GIẢ – FORMAT GIỐNG BACKEND
-  const dataSource = [
-    {
-      id: 1,
-      full_name: "Nguyễn Văn A",
-      email: "a@gmail.com",
-      role: "ADMIN",
-      status: "ACTIVE",
-      createAt: "2026-01-24T10:30:00",
-    },
-    {
-      id: 2,
-      full_name: "Trần Thị B",
-      email: "b@gmail.com",
-      role: "USER",
-      status: "ACTIVE",
-      createAt: "2026-01-23T09:20:00",
-    },
-    {
-      id: 3,
-      full_name: "Lê Văn C",
-      email: "c@gmail.com",
-      role: "USER",
-      status: "LOCKED",
-      createAt: "2026-01-22T08:10:00",
-    },
-  ];
+  const handleAddSubmit = async (data: Partial<IUser>) => {
+    try {
+      const res = await CreateUser(data);
+      if (res && res.code === 1000) {
+        await fetchData();
+        setAddModalVisible(false);
+        message.success("Thêm người dùng thành công");
+      } else {
+        message.error(res.message || "Thêm người dùng thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi thêm người dùng");
+    }
+  };
 
+  const handleEditSubmit = async (data: Partial<IUser>) => {
+    if (!selectedUser) return;
+    try {
+      const res = await UpdateUser(selectedUser.id, data);
+      if (res && res.code === 1000) {
+        await fetchData();
+        setEditModalVisible(false);
+        setSelectedUser(null);
+        message.success("Cập nhật người dùng thành công");
+      } else {
+        message.error(res.message || "Cập nhật người dùng thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi cập nhật người dùng");
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa người dùng này không?',
+      onOk: async () => {
+        try {
+          const res = await DeleteUser(id);
+          if (res && res.code === 1000) {
+            message.success("Xóa người dùng thành công");
+            await fetchData();
+          } else {
+            message.error(res.message || "Xóa người dùng thất bại");
+          }
+        } catch (error) {
+          message.error("Có lỗi xảy ra khi xóa");
+        }
+      }
+    });
+  };
+
+  const handleEditClick = (record: IUser) => {
+    setSelectedUser(record);
+    setEditModalVisible(true);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [])
   const columns = [
     {
       title: "Người dùng",
-      dataIndex: "full_name",
+      dataIndex: "fullName",
       width: 220,
       render: (text: string) => (
         <span>
@@ -86,12 +136,12 @@ const UserManager = () => {
     {
       title: "Thao tác",
       width: 180,
-      render: () => (
+      render: (_: any, record: any) => (
         <Space size="small">
-          <Button type="link" icon={<EditOutlined />} size="small">
+          <Button type="link" icon={<EditOutlined />} size="small" onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
-          <Button type="link" danger icon={<DeleteOutlined />} size="small">
+          <Button type="link" danger icon={<DeleteOutlined />} size="small" onClick={() => handleDelete(record.id)}>
             Xóa
           </Button>
         </Space>
@@ -101,7 +151,6 @@ const UserManager = () => {
 
   return (
     <div>
-      {/* Header */}
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
           Quản lý người dùng
@@ -111,7 +160,6 @@ const UserManager = () => {
         </p>
       </div>
 
-      {/* Search UI (chỉ giao diện) */}
       <Input
         placeholder="Tìm theo tên hoặc email..."
         prefix={<SearchOutlined />}
@@ -121,16 +169,15 @@ const UserManager = () => {
         style={{ width: 400, marginBottom: 16 }}
       />
 
-      {/* Table */}
       <ProTable
         actionRef={actionRef}
         rowKey="id"
         columns={columns as any}
-        dataSource={dataSource}
+        dataSource={dataUser}
         search={false}
         headerTitle="Danh sách người dùng"
         toolBarRender={() => [
-          <Button key="add" type="primary" icon={<PlusOutlined />}>
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setAddModalVisible(true)}>
             Thêm người dùng
           </Button>,
         ]}
@@ -146,6 +193,22 @@ const UserManager = () => {
           setting: true,
         }}
         scroll={{ x: 1000 }}
+      />
+
+      <AddNewUser
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSubmit={handleAddSubmit}
+      />
+
+      <EditUser
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setSelectedUser(null);
+        }}
+        onSubmit={handleEditSubmit}
+        initialData={selectedUser || undefined}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input, Avatar } from "antd";
 import {
@@ -8,24 +8,97 @@ import {
   BankOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import { GetListCompany, CreateCompany, UpdateCompany, DeleteCompany } from "../../../../service/Api/Company/Company";
+import type { ICompany } from "../../../../types/TypeCompany";
+import AddNewCompany from "./Model/AddNewCompany";
+import EditCompany from "./Model/EditCompany";
+import { message, Modal } from "antd";
 
 const Company = () => {
   const actionRef = useRef(null);
   const [searchText, setSearchText] = useState("");
+  const [dataCompany, setDataCompany] = useState<ICompany[]>([]);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<ICompany | null>(null);
 
-  // 🔹 DATA GIẢ – ĐÚNG SCHEMA COMPANIES
-  const dataSource = [
-    {
-      id: 1,
-      name: "Công ty ABC",
-      description: "Công ty hàng đầu trong lĩnh vực công nghệ.",
-      website: "https://www.abc.com",
-      logo_url: "https://via.placeholder.com/40",
-      owner_id: 1001,
-      status: "ACTIVE",
-      created_at: "2024-01-10",
-    },
-  ];
+  const fechdataCompany = async () => {
+    let res = await GetListCompany();
+    if (res && res.code === 1000 && res.result) {
+      setDataCompany(res.result);
+    }
+  };
+
+  const handleAddSubmit = async (data: any) => {
+    try {
+      const res = await CreateCompany(data);
+      if (res && res.code === 1000) {
+        await fechdataCompany();
+        setAddModalVisible(false);
+        message.success("Thêm công ty thành công");
+      } else {
+        message.error(res.message || "Thêm công ty thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi thêm công ty");
+    }
+  };
+
+  const handleEditSubmit = async (data: any) => {
+    if (!selectedCompany) return;
+
+    try {
+      const formData = new FormData();
+      Object.keys(data).forEach(key => {
+        if (key === 'logoUrl' && data[key] instanceof File) {
+          formData.append('logo', data[key]);
+        } else if (data[key] !== undefined && key !== 'logoUrl') {
+          formData.append(key, data[key]);
+        }
+      });
+
+      const res = await UpdateCompany(selectedCompany.id, formData);
+      if (res && res.code === 1000) {
+        await fechdataCompany();
+        setEditModalVisible(false);
+        setSelectedCompany(null);
+        message.success("Cập nhật công ty thành công");
+      } else {
+        message.error(res.message || "Cập nhật công ty thất bại");
+      }
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi cập nhật công ty");
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa công ty này không?',
+      onOk: async () => {
+        try {
+          const res = await DeleteCompany(id);
+          if (res && res.code === 1000) {
+            message.success("Xóa công ty thành công");
+            await fechdataCompany();
+          } else {
+            message.error(res.message || "Xóa công ty thất bại");
+          }
+        } catch (error) {
+          message.error("Có lỗi xảy ra khi xóa");
+        }
+      }
+    });
+  };
+
+  const handleEditClick = (record: ICompany) => {
+    setSelectedCompany(record);
+    setEditModalVisible(true);
+  };
+
+  useEffect(() => {
+    fechdataCompany();
+  }, []);
 
   const columns = [
     {
@@ -55,11 +128,7 @@ const Company = () => {
       width: 280,
       ellipsis: true,
     },
-    {
-      title: "Owner ID",
-      dataIndex: "owner_id",
-      width: 120,
-    },
+
     {
       title: "Trạng thái",
       dataIndex: "status",
@@ -72,19 +141,19 @@ const Company = () => {
     },
     {
       title: "Ngày tạo",
-      dataIndex: "created_at",
+      dataIndex: "createAt",
       width: 160,
     },
     {
       title: "Thao tác",
       width: 160,
       fixed: "right",
-      render: () => (
+      render: (_: any, record: any) => (
         <Space size="small">
-          <Button type="link" icon={<EditOutlined />}>
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
-          <Button type="link" danger icon={<DeleteOutlined />}>
+          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
             Xóa
           </Button>
         </Space>
@@ -94,7 +163,6 @@ const Company = () => {
 
   return (
     <div>
-      {/* HEADER */}
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>
           🏢 Quản lý công ty
@@ -104,7 +172,6 @@ const Company = () => {
         </p>
       </div>
 
-      {/* SEARCH */}
       <Input
         placeholder="Tìm theo tên công ty hoặc website..."
         prefix={<SearchOutlined />}
@@ -114,12 +181,11 @@ const Company = () => {
         style={{ width: 420, marginBottom: 16 }}
       />
 
-      {/* TABLE */}
       <ProTable
         actionRef={actionRef}
         rowKey="id"
         columns={columns as any}
-        dataSource={dataSource.filter(
+        dataSource={dataCompany.filter(
           (item) =>
             item.name
               .toLowerCase()
@@ -135,6 +201,7 @@ const Company = () => {
             key="add"
             type="primary"
             icon={<PlusOutlined />}
+            onClick={() => setAddModalVisible(true)}
           >
             Thêm công ty
           </Button>,
@@ -151,6 +218,22 @@ const Company = () => {
           setting: true,
         }}
         scroll={{ x: 1200 }}
+      />
+
+      <AddNewCompany
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSubmit={handleAddSubmit}
+      />
+
+      <EditCompany
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setSelectedCompany(null);
+        }}
+        onSubmit={handleEditSubmit}
+        initialData={selectedCompany || undefined}
       />
     </div>
   );

@@ -9,12 +9,17 @@ import {
   FileTextOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import type { IJob } from "../../../../types/TypeJob";
+import { AddNewJob, EditJob } from "./Model";
 import ListResume from "./Resume/ListResume";
 
 const JobPostingManagement = () => {
   const actionRef = useRef<any>(null);
   const [searchText, setSearchText] = useState("");
-      const [openResume, setOpenResume] = useState(false);
+  const [openResume, setOpenResume] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<IJob | null>(null);
 
   // 🔹 DATA GIẢ
   const dataSource = [
@@ -113,7 +118,7 @@ const JobPostingManagement = () => {
           <Button type="link" icon={<EyeOutlined />}>
             Xem
           </Button>
-          <Button type="link" icon={<EditOutlined />}>
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
           <Button type="link" danger icon={<DeleteOutlined />}>
@@ -123,6 +128,22 @@ const JobPostingManagement = () => {
       ),
     },
   ];
+
+  const handleAddSubmit = async (data: Partial<IJob>) => {
+    // TODO: Implement your API call to add the job
+    setAddModalVisible(false);
+  };
+
+  const handleEditSubmit = async (data: Partial<IJob>) => {
+    // TODO: Implement your API call to update the job
+    setEditModalVisible(false);
+    setSelectedJob(null);
+  };
+
+  const handleEditClick = (record: IJob) => {
+    setSelectedJob(record);
+    setEditModalVisible(true);
+  };
 
   return (
     <div>
@@ -154,7 +175,7 @@ const JobPostingManagement = () => {
         dataSource={dataSource}
         search={false}
         toolBarRender={() => [
-          <Button key="add" type="primary" icon={<PlusOutlined />}>
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setAddModalVisible(true)}>
             Đăng tin tuyển dụng
           </Button>,
         ]}
@@ -176,6 +197,22 @@ const JobPostingManagement = () => {
   open={openResume}
   onClose={() => setOpenResume(false)}
 />
+
+      <AddNewJob
+        visible={addModalVisible}
+        onClose={() => setAddModalVisible(false)}
+        onSubmit={handleAddSubmit}
+      />
+
+      <EditJob
+        open={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setSelectedJob(null);
+        }}
+        onSubmit={handleEditSubmit}
+        initialData={selectedJob || undefined}
+      />
     </div>
   );
 };

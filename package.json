@@ -13,9 +13,11 @@
     "@ant-design/pro-components": "^2.8.10",
     "@tailwindcss/vite": "^4.1.18",
     "antd": "^5.11.2",
+    "axios": "^1.13.4",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-pdf": "^10.3.0",
     "react-router-dom": "^7.12.0",
     "recharts": "^3.7.0"
   },

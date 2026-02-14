@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Modal, Table, Tag, Button, Space, Avatar, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -22,6 +23,7 @@ interface ListResumeProps {
   onClose: () => void;
 }
 const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
+  const navigate = useNavigate();
   const data: Resume[] = [
     {
       id: 1,
@@ -66,10 +68,10 @@ const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
             s === "NEW"
               ? "blue"
               : s === "VIEWED"
-              ? "gold"
-              : s === "PASSED"
-              ? "green"
-              : "red"
+                ? "gold"
+                : s === "PASSED"
+                  ? "green"
+                  : "red"
           }
         >
           {s}
@@ -85,7 +87,7 @@ const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
           <Button
             type="text"
             icon={<EyeOutlined />}
-            onClick={() => window.open(r.pdfUrl, "_blank")}
+            onClick={() => navigate(`/admin/cv/${r.id}`, { state: { pdfUrl: r.pdfUrl } })}
           />
           <Button
             type="text"

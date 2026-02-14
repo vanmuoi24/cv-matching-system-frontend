@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import bannerLogin from '../../../../assets/imgs/banner-login.png';
-import googleIcon from '../../../../assets/icons/googleIcon.png';
+import bannerLogin from '../../../assets/imgs/banner-login.png';
+import googleIcon from '../../../assets/icons/googleIcon.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { message } from 'antd';
-import { RegisterApi } from '../../../../service/Api/Auth/Auth';
+import { RegisterApi } from '../../../service/Api/Auth/Auth';
 
 const Register = () => {
 	const navigate = useNavigate();
@@ -26,10 +26,10 @@ const Register = () => {
 
 		setLoading(true);
 		try {
-			const response = await RegisterApi({ fullName, email, password, confirmPassword, role: 'USER' });
+			const response = await RegisterApi({ fullName, email, password, confirmPassword });
 			if (response && response.result) {
 				message.success('Đăng ký thành công! Vui lòng đăng nhập.');
-				navigate('/auth/ca/login');
+				navigate('/auth/ca/login'); // Redirect to candidate login
 			}
 		} catch (error: any) {
 			console.error(error);
