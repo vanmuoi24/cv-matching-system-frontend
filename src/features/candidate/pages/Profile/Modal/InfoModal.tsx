@@ -1,6 +1,6 @@
 import { X, Calendar, ChevronDown, Edit2 } from 'lucide-react';
 
-const Info = ({
+const InfoModal = ({
 	isOpen,
 	onClose,
 }: {
@@ -165,4 +165,4 @@ const Info = ({
 	);
 };
 
-export default Info;
+export default InfoModal;

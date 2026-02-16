@@ -52,7 +52,6 @@ const placeData = [
 const HeroSection = () => {
 	const [professions, setProfessions] = useState<string[]>([]);
 	const [place, setPlace] = useState<string>('');
-	console.log(place);
 	const onChangeProfessions = (newValue: string[]) => {
 		console.log('onChange ', newValue);
 		setProfessions(newValue);
@@ -94,15 +93,15 @@ const HeroSection = () => {
 				<div className='flex gap-10'>
 					<div className='flex-7'>
 						<div>
-							<p className='block text-2xl font-bold'>
+							<p className='block text-3xl font-bold'>
 								670.000+ người đã ứng tuyển thành công!
 							</p>
-							<p className='block text-[16px] font-semibold'>
+							<p className='block text-[18px] font-semibold mt-3'>
 								Nhanh hơn. Dễ dàng hơn.
 							</p>
 						</div>
 						<span className='block w-full h-px bg-gray-300 my-3'></span>
-						<div className=' flex items-center shadow-lg p-2 py-3 rounded-[48px] bg-white border border-gray-200'>
+						<div className=' flex items-center shadow-lg p-2 py-3 rounded-[48px] bg-white border border-gray-200 cursor-pointer h-[65px]'>
 							<div className='flex-2 '>
 								<Input
 									className='text-[14px]! font-medium border-none!'
@@ -125,10 +124,10 @@ const HeroSection = () => {
 									bordered={false}
 								/>
 							</div>
-							<div className='flex-1'>
+							<div className='flex-1 h-full'>
 								<Button
 									type='primary'
-									className='rounded-3xl! text-[14px]! font-semibold! bg-[#451fa3]! w-full!'
+									className='rounded-3xl! cursor-pointer hover:bg-[#260b70]! text-[14px]! font-semibold! bg-[#451fa3]! w-full! h-full!'
 								>
 									Tìm kiếm
 								</Button>

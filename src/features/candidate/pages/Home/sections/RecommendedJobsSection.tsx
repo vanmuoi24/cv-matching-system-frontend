@@ -1,20 +1,12 @@
 import { Pagination, Select, type SelectProps } from 'antd';
 import { Funnel } from 'lucide-react';
 import FilterScrollMenu from '../../../components/FilterScrollMenu/FilterScrollMenu';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Container from '../../../../../shared/components/Container';
 import JobCard from '../../../components/Card/JobCard';
 import suggestIcon from '../../../../../assets/icons/suggestIcon.png';
-// 1. Tạo dữ liệu giả (30 jobs) để test phân trang
-const MOCK_JOBS = Array.from({ length: 30 }, (_, i) => ({
-	id: i,
-	title: `Nhân Viên Kỹ Thuật Cơ - Điện Tử ${i + 1}`,
-	companyName: 'Công Ty TNHH TM-DV-SX Tự Động Hóa Kim Thời Đại',
-	salary: `${9 + (i % 5)} - ${15 + (i % 5)} triệu`,
-	location: i % 2 === 0 ? 'TP.HCM' : 'Long An',
-	time: 'Còn 1 ngày',
-	logo: 'https://via.placeholder.com/64',
-}));
+import { type IJob } from '../../../../../types/TypeJob';
+import { JobsApi } from '../../../../../service/Api/Job/Job';
 
 const dataScrollMenu = {
 	place: [
@@ -76,37 +68,55 @@ const RecommendedJobsSection = () => {
 		options: [
 			{
 				value: 'place',
-				label: 'Địa điểm',
+				label: <span className='font-semibold!'>Địa điểm</span>,
 			},
 			{
 				value: 'profession',
-				label: 'Lĩnh vực',
+				label: <span className='font-semibold!'>Lĩnh vực</span>,
 			},
 			{
 				value: 'experience',
-				label: 'Kinh nghiệm',
+				label: <span className='font-semibold!'>Kinh nghiệm</span>,
 			},
 			{
 				value: 'salary',
-				label: 'Mức lương',
+				label: <span className='font-semibold!'>Mức lương</span>,
 			},
 		],
-		defaultValue: 'Địa điểm',
+		className: 'font-semibold! rounded-md',
+		value: 'place',
 		onChange: handleSelectChange,
 	};
 
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 9; // 3x3 = 9 item mỗi trang
 
+	const [jobs, setJobs] = useState<IJob[]>([]);
+
 	// 2. Logic tính toán slice dữ liệu
 	const startIndex = (currentPage - 1) * pageSize;
 	const endIndex = startIndex + pageSize;
-	const currentJobs = MOCK_JOBS.slice(startIndex, endIndex);
+	const currentJobs = jobs.slice(startIndex, endIndex);
 
 	// 3. Hàm xử lý khi đổi trang
 	const handlePageChange = (page: number) => {
 		setCurrentPage(page);
 	};
+
+	useEffect(() => {
+		const getJobs = async () => {
+			try {
+				const response = await JobsApi();
+				if (response.code === 1000 && response.result) {
+					setJobs(response.result);
+				}
+			} catch (error) {
+				console.log(error);
+			}
+		};
+		getJobs();
+	}, []);
+
 	return (
 		<div className='bg-[#f6f9ff] py-20'>
 			<Container>
@@ -138,12 +148,12 @@ const RecommendedJobsSection = () => {
 							{currentJobs.map((job) => (
 								<JobCard
 									key={job.id}
+									id={+job.id}
 									title={job.title}
-									companyName={job.companyName}
-									salary={job.salary}
+									category={job.category}
+									minSalary={+job.minSalary}
+									maxSalary={+job.maxSalary}
 									location={job.location}
-									time={job.time}
-									logo={job.logo}
 								/>
 							))}
 						</div>
@@ -151,7 +161,7 @@ const RecommendedJobsSection = () => {
 					<div className='flex justify-center'>
 						<Pagination
 							current={currentPage}
-							total={MOCK_JOBS.length}
+							total={jobs.length}
 							pageSize={pageSize}
 							onChange={handlePageChange}
 							showSizeChanger={false} // Tắt thay đổi số lượng item/page nếu muốn cố định 3x3

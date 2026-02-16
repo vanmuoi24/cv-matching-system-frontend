@@ -2,20 +2,11 @@ import { Pagination, Select, type SelectProps } from 'antd';
 import fireIcon from '../../../../../assets/icons/fireIcon.png';
 import Container from '../../../../../shared/components/Container';
 import { Funnel } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import FilterScrollMenu from '../../../components/FilterScrollMenu/FilterScrollMenu';
 import JobCard from '../../../components/Card/JobCard';
-
-// 1. Tạo dữ liệu giả (30 jobs) để test phân trang
-const MOCK_JOBS = Array.from({ length: 30 }, (_, i) => ({
-	id: i,
-	title: `Nhân Viên Kỹ Thuật Cơ - Điện Tử ${i + 1}`,
-	companyName: 'Công Ty TNHH TM-DV-SX Tự Động Hóa Kim Thời Đại',
-	salary: `${9 + (i % 5)} - ${15 + (i % 5)} triệu`,
-	location: i % 2 === 0 ? 'TP.HCM' : 'Long An',
-	time: 'Còn 1 ngày',
-	logo: 'https://via.placeholder.com/64',
-}));
+import { JobsApi } from '../../../../../service/Api/Job/Job';
+import { type IJob } from '../../../../../types/TypeJob';
 
 const dataScrollMenu = {
 	place: [
@@ -23,15 +14,10 @@ const dataScrollMenu = {
 		'Hồ Chí Minh',
 		'Hà Nội',
 		'Đà Nẵng',
-		'TP.HCM',
-		'Hồ Chí Minh',
-		'Hà Nội',
-		'Đà Nẵng',
-		'TP.HCM',
-		'Hồ Chí Minh',
-		'Hà Nội',
-		'Đà Nẵng',
-		'TP.HCM',
+		'Cần Thơ',
+		'Bình Dương',
+		'Đồng Nai',
+		'Bà Rịa - Vũng Tàu',
 	],
 	salary: [
 		'Tất cả',
@@ -66,6 +52,22 @@ const JobSection = () => {
 		'place' | 'profession' | 'experience' | 'salary'
 	>('place');
 
+	const [jobs, setJobs] = useState<IJob[]>([]);
+
+	useEffect(() => {
+		const getJobs = async () => {
+			try {
+				const response = await JobsApi();
+				if (response.code === 1000 && response.result) {
+					setJobs(response.result);
+				}
+			} catch (error) {
+				console.error('Error fetching jobs:', error);
+			}
+		};
+		getJobs();
+	}, []);
+
 	const handleSelectChange = (value: string) => {
 		console.log(value);
 		console.log(
@@ -73,26 +75,28 @@ const JobSection = () => {
 		);
 		setFilterValue(value as 'place' | 'profession' | 'experience' | 'salary');
 	};
+
 	const sProps: SelectProps = {
 		options: [
 			{
 				value: 'place',
-				label: 'Địa điểm',
+				label: <span className='font-semibold!'>Địa điểm</span>,
 			},
 			{
 				value: 'profession',
-				label: 'Lĩnh vực',
+				label: <span className='font-semibold!'>Lĩnh vực</span>,
 			},
 			{
 				value: 'experience',
-				label: 'Kinh nghiệm',
+				label: <span className='font-semibold!'>Kinh nghiệm</span>,
 			},
 			{
 				value: 'salary',
-				label: 'Mức lương',
+				label: <span className='font-semibold!'>Mức lương</span>,
 			},
 		],
-		defaultValue: 'Địa điểm',
+		className: 'font-semibold! rounded-md',
+		value: 'place',
 		onChange: handleSelectChange,
 	};
 
@@ -102,7 +106,7 @@ const JobSection = () => {
 	// 2. Logic tính toán slice dữ liệu
 	const startIndex = (currentPage - 1) * pageSize;
 	const endIndex = startIndex + pageSize;
-	const currentJobs = MOCK_JOBS.slice(startIndex, endIndex);
+	const currentJobs = jobs.slice(startIndex, endIndex);
 
 	// 3. Hàm xử lý khi đổi trang
 	const handlePageChange = (page: number) => {
@@ -126,7 +130,10 @@ const JobSection = () => {
 								Lọc theo:
 							</div>
 
-							<Select {...sProps} className='flex-1 font-semibold rounded-md' />
+							<Select
+								{...sProps}
+								className='flex-1 font-semibold! rounded-md'
+							/>
 						</div>
 
 						<div className='w-[750px] flex justify-end'>
@@ -136,17 +143,17 @@ const JobSection = () => {
 							/>
 						</div>
 					</div>
-					<div>
-						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
+					<div className='min-h-[520px] mb-8'>
+						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 '>
 							{currentJobs.map((job) => (
 								<JobCard
 									key={job.id}
+									id={+job.id}
 									title={job.title}
-									companyName={job.companyName}
-									salary={job.salary}
+									category={job.category}
+									minSalary={+job.minSalary}
+									maxSalary={+job.maxSalary}
 									location={job.location}
-									time={job.time}
-									logo={job.logo}
 								/>
 							))}
 						</div>
@@ -154,7 +161,7 @@ const JobSection = () => {
 					<div className='flex justify-center'>
 						<Pagination
 							current={currentPage}
-							total={MOCK_JOBS.length}
+							total={jobs.length}
 							pageSize={pageSize}
 							onChange={handlePageChange}
 							showSizeChanger={false} // Tắt thay đổi số lượng item/page nếu muốn cố định 3x3

@@ -5,7 +5,7 @@ import Footer from '../../../shared/components/Footer';
 const navItems = [
 	{ to: '/ca/job', label: 'Việc Làm' },
 	{ to: '/ca/tool', label: 'Công cụ' },
-	{ to: '/ca/blog', label: 'Cẩm nang nghề nghiệp' },
+	// { to: '/ca/blog', label: 'Cẩm nang nghề nghiệp' },
 ];
 
 function CandidateLayout() {

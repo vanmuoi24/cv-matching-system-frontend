@@ -2,7 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import bagIcon from '../../assets/icons/briefcaseIcon.png';
 import teamIcon from '../../assets/icons/teamIcon.png';
 import avt from '../../assets/imgs/avt.png';
-import { ChevronDown, OutdentIcon } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import {
 	UserOutlined,
 	FileTextOutlined,
@@ -10,7 +10,8 @@ import {
 	SettingOutlined,
 	LogoutOutlined,
 } from '@ant-design/icons';
-import { Divider } from 'antd';
+import { Divider, Modal } from 'antd';
+import { LogoutApi } from '../../service/Api/Auth/Auth';
 interface INavbarProps {
 	navItems: { to: string; label: string }[];
 	isRecruiter?: boolean;
@@ -18,8 +19,25 @@ interface INavbarProps {
 
 const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 	const user = localStorage.getItem('user');
+	const [modal, contextHolder] = Modal.useModal();
+
+	const handleLogout = () => {
+		modal.confirm({
+			title: 'Xác nhận đăng xuất',
+			content: 'Bạn có chắc chắn muốn đăng xuất?',
+			okText: 'Đăng xuất',
+			cancelText: 'Hủy',
+			okType: 'danger',
+			centered: true,
+			onOk() {
+				LogoutApi();
+			},
+		});
+	};
+
 	return (
 		<header>
+			{contextHolder}
 			<div className='flex items-center'>
 				{/* Logo */}
 				<div className='flex-1'>
@@ -122,14 +140,20 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 									</div>
 
 									{/* Item 5 */}
-									<div className='flex items-center p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-all'>
+									<Link
+										to='/ca/profile/account'
+										className='flex items-center p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-all'
+									>
 										<SettingOutlined className='text-blue-500 text-lg mr-3' />
 										<span className='text-gray-700 font-medium flex-1'>
 											Quản lý tài khoản
 										</span>
-									</div>
+									</Link>
 									<Divider className='my-0!' />
-									<div className='flex items-center p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-all'>
+									<div
+										className='flex items-center p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-all'
+										onClick={handleLogout}
+									>
 										<LogoutOutlined className='text-blue-500 text-lg mr-3' />
 										<span className='text-gray-700 font-medium flex-1'>
 											Đăng xuất
