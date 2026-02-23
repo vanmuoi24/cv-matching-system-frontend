@@ -18,6 +18,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
 } from "@ant-design/icons";
+import type { IJob } from "../../../../types/TypeJob";
 
 const { Text } = Typography;
 
@@ -29,6 +30,7 @@ const JobCvAIFilter = () => {
     good: 0,
     reject: 0,
   });
+
 
   const handleAIFilter = () => {
     setLoading(true);

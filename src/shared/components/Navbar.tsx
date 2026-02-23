@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 import bagIcon from '../../assets/icons/briefcaseIcon.png';
 import teamIcon from '../../assets/icons/teamIcon.png';
+import { DownOutlined } from "@ant-design/icons";
 
 interface INavbarProps {
 	navItems: { to: string; label: string }[];
@@ -8,6 +9,10 @@ interface INavbarProps {
 }
 
 const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
+
+	let userLocal = localStorage.getItem('user');
+	let user = userLocal ? JSON.parse(userLocal) : null;
+	console.log('user', user);
 	return (
 		<header>
 			<div className='flex items-center'>
@@ -57,7 +62,58 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 						>
 							<span className='text-[12px]'>Người tìm việc</span>
 							<br />
-							<span className='text-[14px] font-bold'>Đăng nhập/Đăng kí</span>
+
+							{
+								user ? (
+
+									<div className="relative group">
+										{user ? (
+											<>
+												{/* Name + Arrow */}
+												<div className="flex items-center gap-1 cursor-pointer">
+													<span className="text-[14px] font-bold">
+														{user.fullName}
+													</span>
+
+													{/* Arrow */}
+													<DownOutlined
+														className="text-[12px] transition-transform duration-200 group-hover:rotate-180"
+													/>
+												</div>
+
+												{/* Dropdown */}
+												<div
+													className="absolute right-0 top-8 w-64 bg-white rounded-xl shadow-xl border
+                   opacity-0 invisible group-hover:visible group-hover:opacity-100
+                   transition-all duration-200 z-50"
+												>
+													<ul className="text-gray-700 text-[15px] py-3">
+														<li className="px-5 py-2 hover:bg-gray-100">Hồ sơ của tôi</li>
+														<li className="px-5 py-2 hover:bg-gray-100">Tạo CV</li>
+
+														<li className="px-5 py-2 font-semibold">Quản lý việc làm</li>
+														<li className="px-8 py-2 hover:bg-gray-100">
+															• Việc làm đã ứng tuyển
+														</li>
+														<li className="px-8 py-2 hover:bg-gray-100">
+															• Việc làm đã lưu
+														</li>
+													</ul>
+												</div>
+											</>
+										) : (
+											<span className="text-[14px] font-bold cursor-pointer">
+												Đăng nhập/Đăng kí
+											</span>
+										)}
+									</div>
+
+
+								) : (
+									<span className='text-[14px] font-bold'>Đăng nhập/Đăng kí</span>
+								)
+							}
+
 						</div>
 					</Link>
 

@@ -5,19 +5,20 @@ import Blog from '../pages/Blog/page';
 import Tool from '../pages/Tool/page';
 import JobList from '../pages/Job/JobList/page';
 import JobDetail from '../pages/Job/JobDetail/page';
+import ProfilePage from '../pages/Profile/ProfilePage';
+
 const CandidateRoutes = () => {
 	return (
 		<Routes>
 			<Route element={<CandidateLayout />}>
 				<Route index element={<Home />} />
-
 				<Route path='job'>
 					<Route index element={<JobList />} />
 					<Route path=':jobId' element={<JobDetail />} />
 				</Route>
-
 				<Route path='/tool' element={<Tool />} />
 				<Route path='/blog' element={<Blog />} />
+				<Route path='/profile' element={<ProfilePage />} />
 			</Route>
 		</Routes>
 	);

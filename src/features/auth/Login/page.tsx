@@ -14,7 +14,7 @@ const Login = () => {
 								Người tìm việc
 							</p>
 							<p className='text-[20px] font-semibold text-center'>
-								Đăng nhập hoặc Đăng kí
+								Đăng nhập hoặc Đăng kí 
 							</p>
 						</div>
 						<div className='mb-6'>

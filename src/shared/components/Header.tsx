@@ -9,8 +9,8 @@ interface IHeaderProps {
 
 const Header = ({ navItems, isRecruiter }: IHeaderProps) => {
 	return (
-		<header>
-			<div className='flex items-center justify-center gap-2 '>
+		<header className="fixed top-0 left-0 right-0 z-50">
+			<div className='flex items-center justify-center gap-2 bg-white'>
 				<div className='w-25'>
 					<img src={notification} alt='notification' />
 				</div>
