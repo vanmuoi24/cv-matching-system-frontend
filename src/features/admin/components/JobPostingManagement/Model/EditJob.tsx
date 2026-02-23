@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react';
-import { Form, Input, InputNumber, Select, Row, Col, Button, Modal } from 'antd';
-import { FileTextOutlined } from '@ant-design/icons';
-
-interface ICompanyOption {
-  label: string;
-  value: number;
-}
+import { useEffect, useState } from "react";
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Row,
+  Col,
+  Button,
+  Modal,
+} from "antd";
+import { FileTextOutlined } from "@ant-design/icons";
+import { GetListCompany } from "../../../../../service/Api/Company/Company";
+import type { ICompany } from "../../../../../types/TypeCompany";
 
 interface JobFormProps {
   open: boolean;
@@ -16,15 +22,17 @@ interface JobFormProps {
 
 const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
   const [form] = Form.useForm();
-  const [companyOptions, setCompanyOptions] = useState<ICompanyOption[]>([]);
+  const [companyOptions, setCompanyOptions] = useState<ICompany[]>([]);
 
   useEffect(() => {
     // TODO: thay bằng API thật
-    setCompanyOptions([
-      { label: 'FPT Software', value: 1 },
-      { label: 'VNG Corporation', value: 2 },
-      { label: 'Tiki', value: 3 },
-    ]);
+    const fetchCompanies = async () => {
+      const res1 = await GetListCompany();
+      if (res1?.code === 1000 && res1.result) {
+        setCompanyOptions(res1.result);
+      }
+    };
+    fetchCompanies();
   }, []);
 
   useEffect(() => {
@@ -56,13 +64,14 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
     };
 
     onSubmit(submitData);
+    console.log("Submit data:", submitData); // --- IGNORE ---
   };
 
   return (
     <Modal
       open={open}
       onCancel={onClose}
-      title={initialData ? 'Cập nhật Job' : 'Thêm Job mới'}
+      title={initialData ? "Cập nhật Job" : "Thêm Job mới"}
       footer={null}
       width={900}
       destroyOnClose
@@ -79,7 +88,7 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
             <Form.Item
               label="Vị trí tuyển dụng"
               name="title"
-              rules={[{ required: true, message: 'Nhập vị trí tuyển dụng' }]}
+              rules={[{ required: true, message: "Nhập vị trí tuyển dụng" }]}
             >
               <Input prefix={<FileTextOutlined />} size="large" />
             </Form.Item>
@@ -89,12 +98,15 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
             <Form.Item
               label="Công ty"
               name="companyId"
-              rules={[{ required: true, message: 'Chọn công ty' }]}
+              rules={[{ required: true, message: "Chọn công ty" }]}
             >
               <Select
                 size="large"
                 placeholder="Chọn công ty"
-                options={companyOptions}
+                options={companyOptions.map((c) => ({
+                  label: c.name,
+                  value: c.id,
+                }))}
                 showSearch
                 optionFilterProp="label"
               />
@@ -106,9 +118,9 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
               <Select
                 size="large"
                 options={[
-                  { label: 'Đang tuyển', value: 'OPEN' },
-                  { label: 'Tạm dừng', value: 'PAUSE' },
-                  { label: 'Đã đóng', value: 'CLOSED' },
+                  { label: "Đang tuyển", value: "OPEN" },
+                  { label: "Tạm dừng", value: "PAUSE" },
+                  { label: "Đã đóng", value: "CLOSED" },
                 ]}
               />
             </Form.Item>
@@ -121,16 +133,70 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
             <Form.Item
               label="Danh mục"
               name="category"
-              rules={[{ required: true, message: 'Chọn danh mục' }]}
+              rules={[{ required: true, message: "Chọn danh mục" }]}
             >
               <Select
                 size="large"
                 options={[
-                  { label: 'IT', value: 'IT' },
-                  { label: 'Marketing', value: 'Marketing' },
-                  { label: 'Sales', value: 'Sales' },
-                  { label: 'Design', value: 'Design' },
-                  { label: 'HR', value: 'HR' },
+                  { label: "IT / Software", value: "IT_SOFTWARE" },
+                  { label: "Data / AI", value: "DATA_AI" },
+                  { label: "Cyber Security", value: "CYBER_SECURITY" },
+                  { label: "DevOps / Cloud", value: "DEVOPS_CLOUD" },
+                  { label: "Product Management", value: "PRODUCT" },
+                  { label: "Project Management", value: "PROJECT" },
+
+                  { label: "Marketing", value: "MARKETING" },
+                  { label: "Digital Marketing", value: "DIGITAL_MARKETING" },
+                  { label: "Content Creator", value: "CONTENT" },
+                  { label: "SEO / SEM", value: "SEO_SEM" },
+                  { label: "Brand Management", value: "BRAND" },
+
+                  { label: "Sales", value: "SALES" },
+                  { label: "Business Development", value: "BUSINESS_DEV" },
+                  { label: "Customer Service", value: "CUSTOMER_SERVICE" },
+
+                  { label: "Finance", value: "FINANCE" },
+                  { label: "Accounting", value: "ACCOUNTING" },
+                  { label: "Banking", value: "BANKING" },
+                  { label: "Investment", value: "INVESTMENT" },
+
+                  { label: "Human Resources (HR)", value: "HR" },
+                  { label: "Recruitment", value: "RECRUITMENT" },
+                  { label: "Training & Development", value: "TRAINING" },
+
+                  { label: "Design (UI/UX/Graphic)", value: "DESIGN" },
+                  { label: "Multimedia", value: "MULTIMEDIA" },
+                  { label: "Architecture", value: "ARCHITECTURE" },
+
+                  { label: "Operations", value: "OPERATIONS" },
+                  { label: "Supply Chain", value: "SUPPLY_CHAIN" },
+                  { label: "Logistics", value: "LOGISTICS" },
+                  { label: "Procurement", value: "PROCUREMENT" },
+
+                  { label: "Manufacturing", value: "MANUFACTURING" },
+                  { label: "Construction", value: "CONSTRUCTION" },
+                  { label: "Mechanical Engineering", value: "MECHANICAL" },
+                  { label: "Electrical Engineering", value: "ELECTRICAL" },
+
+                  { label: "Healthcare", value: "HEALTHCARE" },
+                  { label: "Pharmaceutical", value: "PHARMA" },
+                  { label: "Education", value: "EDUCATION" },
+                  { label: "Legal", value: "LEGAL" },
+
+                  { label: "Hospitality", value: "HOSPITALITY" },
+                  { label: "Tourism", value: "TOURISM" },
+                  { label: "Food & Beverage", value: "FNB" },
+
+                  { label: "Real Estate", value: "REAL_ESTATE" },
+                  { label: "Insurance", value: "INSURANCE" },
+
+                  { label: "Media & Communication", value: "MEDIA" },
+                  { label: "Public Relations (PR)", value: "PR" },
+
+                  { label: "Administration", value: "ADMIN" },
+                  { label: "Government / Public Sector", value: "GOVERNMENT" },
+
+                  { label: "Others", value: "OTHERS" },
                 ]}
               />
             </Form.Item>
@@ -140,15 +206,15 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
             <Form.Item
               label="Loại hình công việc"
               name="jobType"
-              rules={[{ required: true, message: 'Chọn loại hình' }]}
+              rules={[{ required: true, message: "Chọn loại hình" }]}
             >
               <Select
                 size="large"
                 options={[
-                  { label: 'Toàn thời gian', value: 'FULL_TIME' },
-                  { label: 'Bán thời gian', value: 'PART_TIME' },
-                  { label: 'Thực tập', value: 'INTERN' },
-                  { label: 'Freelance', value: 'FREELANCE' },
+                  { label: "Toàn thời gian", value: "FULL_TIME" },
+                  { label: "Bán thời gian", value: "PART_TIME" },
+                  { label: "Thực tập", value: "INTERN" },
+                  { label: "Freelance", value: "FREELANCE" },
                 ]}
               />
             </Form.Item>
@@ -165,13 +231,13 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item label="Lương tối thiểu" name="minSalary">
-              <InputNumber min={0} style={{ width: '100%' }} size="large" />
+              <InputNumber min={0} style={{ width: "100%" }} size="large" />
             </Form.Item>
           </Col>
 
           <Col span={8}>
             <Form.Item label="Lương tối đa" name="maxSalary">
-              <InputNumber min={0} style={{ width: '100%' }} size="large" />
+              <InputNumber min={0} style={{ width: "100%" }} size="large" />
             </Form.Item>
           </Col>
 
@@ -198,7 +264,7 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
           </Col>
           <Col>
             <Button type="primary" htmlType="submit">
-              {initialData ? 'Cập nhật' : 'Tạo mới'}
+              {initialData ? "Cập nhật" : "Tạo mới"}
             </Button>
           </Col>
         </Row>

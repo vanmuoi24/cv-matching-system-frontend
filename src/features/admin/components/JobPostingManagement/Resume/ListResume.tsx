@@ -8,6 +8,7 @@ import {
   DownloadOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import type { IApplication } from "../../../../../types/TypeApplication";
 
 const { Text } = Typography;
 
@@ -15,32 +16,47 @@ type Resume = {
   id: number;
   candidateName: string;
   email: string;
-  status: "NEW" | "VIEWED" | "PASSED" | "REJECTED";
+  // status: "NEW" | "VIEWED" | "PASSED" | "REJECTED";
+  status: string;
   pdfUrl: string;
 };
 interface ListResumeProps {
   open: boolean;
   onClose: () => void;
+  listResume?: IApplication[] | undefined;
 }
-const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
+const ListResume: React.FC<ListResumeProps> = ({
+  open,
+  onClose,
+  listResume,
+}) => {
   const navigate = useNavigate();
-  const data: Resume[] = [
-    {
-      id: 1,
-      candidateName: "Nguyễn Văn A",
-      email: "a.nguyen@gmail.com",
-      status: "NEW",
-      pdfUrl: "https://console.cloudinary.com/app/c-e9b4853ecf1141d3ea69964c9d0585/assets/media_library/search/asset/8efd32a671410857e92ffa4989168a06/manage/summary?q=&view_mode=mosaic&context=manage",
-    },
-    {
-      id: 2,
-      candidateName: "Trần Thị B",
-      email: "b.tran@gmail.com",
-      status: "VIEWED",
-      pdfUrl: "/cv/b.pdf",
-    },
-  ];
-
+  // const data: Resume[] = [
+  //   {
+  //     id: 1,
+  //     candidateName: "Nguyễn Văn A",
+  //     email: "a.nguyen@gmail.com",
+  //     status: "NEW",
+  //     pdfUrl:
+  //       "https://console.cloudinary.com/app/c-e9b4853ecf1141d3ea69964c9d0585/assets/media_library/search/asset/8efd32a671410857e92ffa4989168a06/manage/summary?q=&view_mode=mosaic&context=manage",
+  //   },
+  //   {
+  //     id: 2,
+  //     candidateName: "Trần Thị B",
+  //     email: "b.tran@gmail.com",
+  //     status: "VIEWED",
+  //     pdfUrl: "/cv/b.pdf",
+  //   },
+  // ];
+  const data: Resume[] = listResume
+    ? listResume.map((app) => ({
+        id: app.id,
+        candidateName: app?.candidate?.fullName ?? "Chưa cập nhật",
+        email: app?.candidate?.email ?? "Chưa cập nhật",
+        status: app.status ?? "NEW",
+        pdfUrl: app?.candidate?.profile?.cvFileUrl ?? "Chưa cập nhật",
+      }))
+    : [];
   const columns: ColumnsType<Resume> = [
     {
       title: "Ứng viên",
@@ -87,7 +103,9 @@ const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
           <Button
             type="text"
             icon={<EyeOutlined />}
-            onClick={() => navigate(`/admin/cv/${r.id}`, { state: { pdfUrl: r.pdfUrl } })}
+            onClick={() =>
+              navigate(`/admin/cv/${r.id}`, { state: { pdfUrl: r.pdfUrl } })
+            }
           />
           <Button
             type="text"
