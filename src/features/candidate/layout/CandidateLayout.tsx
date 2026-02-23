@@ -5,10 +5,14 @@ import Footer from '../../../shared/components/Footer';
 const navItems = [
 	{ to: '/ca/job', label: 'Việc Làm' },
 	{ to: '/ca/tool', label: 'Công cụ' },
-	{ to: '/ca/blog', label: 'Cẩm nang nghề nghiệp' },
+	// { to: '/ca/blog', label: 'Cẩm nang nghề nghiệp' },
 ];
 
 function CandidateLayout() {
+	const user = localStorage.getItem('user');
+	if (user && JSON.parse(user).role === 'RECRUITER') {
+		localStorage.clear();
+	}
 	return (
 		<>
 			<Header navItems={navItems} isRecruiter={false} />

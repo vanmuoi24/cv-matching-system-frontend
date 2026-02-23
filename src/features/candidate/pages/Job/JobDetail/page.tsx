@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Tag, Avatar, Divider, Typography } from 'antd';
 import {
 	DollarOutlined,
@@ -10,6 +10,9 @@ import {
 	TeamOutlined,
 } from '@ant-design/icons';
 import Container from '../../../../../shared/components/Container';
+import { useParams } from 'react-router-dom';
+import { JobApiById } from '../../../../../service/Api/Job/Job';
+import type { IJob } from '../../../../../types/TypeJob';
 
 const { Title } = Typography;
 
@@ -110,13 +113,36 @@ const similarJobs = [
 
 // --- Component Chính ---
 const JobDetail: React.FC = () => {
+	const { jobId } = useParams();
+	const [jobDetail, setJobDetail] = useState<IJob | null>(null);
+
+	useEffect(() => {
+		const getJobDetail = async () => {
+			try {
+				const response = await JobApiById(jobId!);
+				if (response.code === 1000 && response.result) {
+					setJobDetail(response.result);
+				}
+			} catch (error) {
+				console.error('Error fetching jobs:', error);
+			}
+		};
+		getJobDetail();
+	}, [jobId]);
+
+	useEffect(() => {
+		window.scrollTo({
+			top: 100,
+			behavior: 'smooth',
+		});
+	}, []);
 	return (
 		<div className='mt-10'>
 			<Container>
 				{/* === Header Section === */}
 				<div className='bg-white rounded-lg shadow-xl p-6 mb-6'>
 					<Title level={3} className='!mb-4 text-gray-800'>
-						{jobData.title}
+						{jobDetail?.title}
 					</Title>
 
 					<div className='flex flex-wrap gap-6 mb-6 text-gray-600'>
@@ -127,7 +153,7 @@ const JobDetail: React.FC = () => {
 							<div>
 								<div className='text-xs text-gray-500'>Mức lương</div>
 								<div className='font-semibold text-purple-700'>
-									{jobData.salary}
+									{jobDetail?.minSalary} - {jobDetail?.maxSalary}
 								</div>
 							</div>
 						</div>
@@ -138,7 +164,7 @@ const JobDetail: React.FC = () => {
 							<div>
 								<div className='text-xs text-gray-500'>Khu vực tuyển</div>
 								<div className='font-semibold text-gray-800'>
-									{jobData.location}
+									{jobDetail?.location}
 								</div>
 							</div>
 						</div>
@@ -147,9 +173,9 @@ const JobDetail: React.FC = () => {
 								<ClockCircleOutlined />
 							</div>
 							<div>
-								<div className='text-xs text-gray-500'>Kinh nghiệm</div>
+								<div className='text-xs text-gray-500'>Kĩ năng</div>
 								<div className='font-semibold text-gray-800'>
-									{jobData.experience}
+									{jobDetail?.skills}
 								</div>
 							</div>
 						</div>
@@ -158,20 +184,20 @@ const JobDetail: React.FC = () => {
 								<TrophyOutlined />
 							</div>
 							<div>
-								<div className='text-xs text-gray-500'>Trình độ</div>
+								<div className='text-xs text-gray-500'>Yêu cầu</div>
 								<div className='font-semibold text-gray-800'>
-									{jobData.level}
+									{jobDetail?.requirement}
 								</div>
 							</div>
 						</div>
 					</div>
 
-					<div className='flex items-center justify-between bg-orange-50 p-3 rounded mb-6 border border-orange-100'>
+					{/* <div className='flex items-center justify-between bg-orange-50 p-3 rounded mb-6 border border-orange-100'>
 						<span className='text-orange-600 text-sm'>
 							⏳ Hạn nộp hồ sơ: <strong>{jobData.deadline}</strong> • Công việc
 							đang rất được quan tâm! Ứng tuyển ngay để không lỡ cơ hội!
 						</span>
-					</div>
+					</div> */}
 
 					<div className='flex gap-4'>
 						<Button

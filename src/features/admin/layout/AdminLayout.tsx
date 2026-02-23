@@ -5,9 +5,7 @@ const AdminLayout = () => {
 	return (
 		<>
 			<div className='flex min-h-screen'>
-				<aside className='w-64 border-r'>
-					
-				</aside>
+				<aside className='w-64 border-r'></aside>
 				<main className='flex-1 '>
 					<Container className='py-6'>
 						<Outlet />

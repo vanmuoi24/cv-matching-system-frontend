@@ -2,27 +2,33 @@ import {
 	HeartOutlined,
 	DollarCircleOutlined,
 	EnvironmentOutlined,
-	ClockCircleOutlined,
+	ArrowRightOutlined,
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 interface JobCardProps {
+	id: number;
 	title: string;
-	companyName: string;
-	salary: string;
-	location: string;
-	time: string;
-	logo: string;
+	category: string;
+	minSalary: number;
+	maxSalary: number;
+	location?: string;
 }
 
 const JobCard = ({
+	id,
 	title,
-	companyName,
-	salary,
+	category,
+	minSalary,
+	maxSalary,
 	location,
-	time,
-	logo,
 }: JobCardProps) => {
+	const navi = useNavigate();
+
 	return (
-		<div className='max-w-100 w-full bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer relative'>
+		<div
+			onClick={() => navi(`/ca/job/${id}`)}
+			className='max-w-100 w-full bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer relative'
+		>
 			{/* Header: Title & Save Button */}
 			<div className='flex justify-between items-start gap-2 mb-2'>
 				<h3 className='font-bold text-gray-800 text-lg leading-tight line-clamp-2 flex-1'>
@@ -36,23 +42,24 @@ const JobCard = ({
 			{/* Body: Logo & Info */}
 			<div className='flex gap-3'>
 				{/* Logo Company */}
-				<div className='w-16 h-16 shrink-0 border border-gray-100 rounded-lg overflow-hidden p-1 flex items-center justify-center bg-white'>
+				{/* <div className='w-16 h-16 shrink-0 border border-gray-100 rounded-lg overflow-hidden p-1 flex items-center justify-center bg-white'>
 					<img
 						src={logo}
 						alt='Company Logo'
 						className='w-full h-full object-contain'
 					/>
-				</div>
+				</div> */}
 
 				{/* Info Details */}
 				<div className='flex flex-col gap-1 flex-1 min-w-0'>
-					{/* Company Name - line-clamp-1 để cắt chữ + dấu ... */}
-					<p className='text-gray-500 text-sm truncate w-full'>{companyName}</p>
+					<p className='text-gray-500 text-sm truncate w-full'>{category}</p>
 
 					{/* Salary */}
 					<div className='flex items-center gap-2 text-blue-600 font-medium text-sm'>
 						<DollarCircleOutlined />
-						<span>{salary}</span>
+						<span>
+							{minSalary} - {maxSalary} $
+						</span>
 					</div>
 
 					{/* Location */}
@@ -68,8 +75,9 @@ const JobCard = ({
 
 			{/* Footer: Time */}
 			<div className='flex justify-end items-center gap-1 text-gray-500 text-sm'>
-				<ClockCircleOutlined />
-				<span>{time}</span>
+				<span>
+					Xem chi tiết <ArrowRightOutlined />
+				</span>
 			</div>
 		</div>
 	);
