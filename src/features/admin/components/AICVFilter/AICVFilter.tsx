@@ -108,14 +108,23 @@ const JobListForAI = () => {
       search={false}
       headerTitle={
         <Space direction="vertical" size={0}>
-          <Text style={{ fontSize: 22, fontWeight: 300 }}>
-            🤖 AI CV Screening
+          <Text style={{ fontSize: 22, fontWeight: 600 }}>
+            AI CV Screening
           </Text>
           <Text type="secondary">
             Chọn job để AI tự động chấm điểm & lọc CV phù hợp
           </Text>
         </Space>
       }
+      toolBarRender={() => [
+        <Button
+          key="refresh"
+          onClick={fetchDataJob}
+          loading={loading}
+        >
+          Tải lại danh sách
+        </Button>,
+      ]}
       pagination={{
         pageSize: 5,
         showSizeChanger: true,

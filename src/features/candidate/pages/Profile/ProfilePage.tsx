@@ -1,25 +1,29 @@
 import { useState } from "react";
 import ProfileMain from "./Profilelayout/ProfileMain";
 import ProfileSidebar from "./Profilelayout/ProfileSidebar";
+import Container from "../../../../shared/components/Container";
 
 const ProfilePage = () => {
   const [activeMenu, setActiveMenu] = useState("profile");
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <div className="flex">
-        {/* Fixed Sidebar */}
-        <div className="w-80 fixed left-20 top-32 bottom-0 bg-white shadow-lg overflow-y-auto h-100 rounded-2xl">
-          <ProfileSidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
-        </div>
+    <div className="bg-gray-50 min-h-[calc(100vh-120px)]">
+      <Container className="py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <aside className="lg:col-span-4">
+            <div className="bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden lg:sticky lg:top-[132px]">
+              <ProfileSidebar
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+              />
+            </div>
+          </aside>
 
-        {/* Main Content */}
-        <div className="flex-1 ml-80 p-6" style={{marginTop:105}} >
-          <div className="max-w-5xl mx-auto">
+          <section className="lg:col-span-8">
             <ProfileMain activeMenu={activeMenu} />
-          </div>
+          </section>
         </div>
-      </div>
+      </Container>
     </div>
   );
 };

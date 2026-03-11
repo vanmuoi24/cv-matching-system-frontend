@@ -6,7 +6,7 @@ function CandidateLayout() {
 	return (
 		<>
 			<Header />
-			<main className='min-h-[80vh]'>
+			<main className='min-h-[80vh] pt-[112px] md:pt-[120px]'>
 				<Outlet />
 			</main>
 			<Footer />

@@ -14,25 +14,38 @@ interface ProfileSidebarProps {
 }
 
 const ProfileSidebar = ({ activeMenu, setActiveMenu }: ProfileSidebarProps) => {
+  const userLocal = localStorage.getItem("user");
+  const user = userLocal ? JSON.parse(userLocal) : null;
+
   const menuItems = [
     { id: "profile", label: "Hồ sơ của tôi", icon: <FileTextOutlined /> },
-    { id: "cv", label: "Trạng trí CV", icon: <StarOutlined /> },
+    { id: "cv", label: "Việc làm đã ứng tuyển", icon: <StarOutlined /> },
     { id: "jobs", label: "Quản lý việc làm", icon: <CarOutlined />, hasArrow: true },
     { id: "support", label: "Hỗ trợ và thông báo", icon: <BellOutlined />, hasArrow: true },
     { id: "account", label: "Quản lý tài khoản", icon: <UserOutlined /> },
   ];
 
+
   return (
-    <div className="p-6 space-y-6 h-full">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold">Tên</h2>
-        <p className="text-gray-500 mt-1">Nhân viên IT</p>
+      <div className="flex items-center gap-3">
+        <div className="h-12 w-12 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+          {(user?.fullName?.[0] || "U").toUpperCase()}
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-base font-bold text-gray-900 truncate">
+            {user?.fullName || "Tài khoản"}
+          </h2>
+          <p className="text-gray-500 text-sm truncate">
+            {user?.email || "Cập nhật hồ sơ để nhận gợi ý tốt hơn"}
+          </p>
+        </div>
       </div>
 
       {/* Toggle Box */}
-      <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
-        <span className="text-gray-700 font-medium">
+      <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between gap-3">
+        <span className="text-gray-700 font-medium text-sm">
           Cho phép Nhà tuyển dụng tìm bạn
         </span>
         <Switch />
@@ -46,7 +59,7 @@ const ProfileSidebar = ({ activeMenu, setActiveMenu }: ProfileSidebarProps) => {
             onClick={() => setActiveMenu(item.id)}
             className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition ${
               activeMenu === item.id
-                ? "bg-purple-100 text-purple-700"
+                ? "bg-purple-100 text-purple-700 shadow-sm"
                 : "hover:bg-gray-100 text-gray-700"
             }`}
           >
