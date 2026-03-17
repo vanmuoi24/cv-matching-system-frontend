@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input, Avatar } from "antd";
 import {
@@ -31,7 +31,21 @@ const Company = () => {
 
   const handleAddSubmit = async (data: any) => {
     try {
-      const res = await CreateCompany(data);
+      const formData = new FormData();
+      Object.keys(data).forEach((key) => {
+        if (key === 'logo') {
+          formData.append('logo', data[key]);
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user?.id) {
+        formData.append('ownerId', user.id);
+      }
+
+      const res = await CreateCompany(formData);
       if (res && res.code === 1000) {
         await fechdataCompany();
         setAddModalVisible(false);
@@ -49,10 +63,10 @@ const Company = () => {
 
     try {
       const formData = new FormData();
-      Object.keys(data).forEach(key => {
-        if (key === 'logoUrl' && data[key] instanceof File) {
+      Object.keys(data).forEach((key) => {
+        if (key === 'logo') {
           formData.append('logo', data[key]);
-        } else if (data[key] !== undefined && key !== 'logoUrl') {
+        } else {
           formData.append(key, data[key]);
         }
       });
@@ -107,7 +121,7 @@ const Company = () => {
       width: 260,
       render: (_: any, record: any) => (
         <Space>
-          <Avatar src={record.logo_url} icon={<BankOutlined />} />
+          <Avatar src={record.logoUrl || record.logo_url} icon={<BankOutlined />} />
           <div>
             <div style={{ fontWeight: 600 }}>{record.name}</div>
             <a

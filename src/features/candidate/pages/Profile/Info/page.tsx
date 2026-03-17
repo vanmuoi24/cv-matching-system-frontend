@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import InfoModal from '../Modal/InfoModal';
 import { useRef, useState } from 'react';
-import instance from '/Users/heymac/Documents/ProjectSoftware/smartcv-frontend/src/service/Axios/Axios';
+import instance from '../../../../../service/Axios/Axios';
+import type { AxiosProgressEvent } from 'axios';
 
 // Mock data based on User and CandidateProfile entities
 const mockUserData = {
@@ -72,7 +73,7 @@ const Info = () => {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 				},
-				onUploadProgress: (progressEvent: ProgressEvent) => {
+				onUploadProgress: (progressEvent: AxiosProgressEvent) => {
 					if (progressEvent.total) {
 						const percentCompleted = Math.round(
 							(progressEvent.loaded * 100) / progressEvent.total
@@ -149,7 +150,7 @@ const Info = () => {
 									icon={<Briefcase size={16} />}
 									label={
 										mockUserData.experienceYear !==
-										'Chưa cập nhật số năm kinh nghiệm'
+											'Chưa cập nhật số năm kinh nghiệm'
 											? `${mockUserData.experienceYear} năm kinh nghiệm`
 											: 'Thêm kinh nghiệm'
 									}
@@ -163,9 +164,8 @@ const Info = () => {
 						<h3 className='font-bold mb-4'>CV của tôi</h3>
 						<div className='border-2 border-dashed border-purple-200 rounded-lg p-8 flex flex-col items-center justify-center bg-purple-50/30'>
 							<button
-								className={`bg-purple-100 text-purple-700 px-6 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-purple-200 transition  cursor-pointer ${
-									uploading ? 'opacity-60 cursor-not-allowed' : ''
-								}`}
+								className={`bg-purple-100 text-purple-700 px-6 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-purple-200 transition  cursor-pointer ${uploading ? 'opacity-60 cursor-not-allowed' : ''
+									}`}
 								onClick={handleUploadCV}
 								disabled={uploading}
 							>
