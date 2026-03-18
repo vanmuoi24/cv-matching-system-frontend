@@ -1,0 +1,14 @@
+.form-view-mode .ant-input[disabled],
+.form-view-mode .ant-input-affix-wrapper-disabled,
+.form-view-mode .ant-select-disabled .ant-select-selector,
+.form-view-mode .ant-input-number-disabled,
+.form-view-mode textarea[disabled] {
+  background-color: #fff !important;
+  color: rgba(0, 0, 0, 0.88) !important;
+  cursor: default !important;
+  opacity: 1 !important;
+}
+
+.form-view-mode .ant-select-disabled {
+  color: rgba(0, 0, 0, 0.88) !important;
+}

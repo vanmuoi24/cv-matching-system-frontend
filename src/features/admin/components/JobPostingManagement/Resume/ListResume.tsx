@@ -1,6 +1,17 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Modal, Table, Tag, Button, Space, Avatar, Typography } from "antd";
+import {
+  Modal,
+  Table,
+  Tag,
+  Button,
+  Space,
+  Avatar,
+  Typography,
+  message,
+  Input,
+  Select,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
   FilePdfOutlined,
@@ -8,39 +19,99 @@ import {
   DownloadOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import type { IApplication } from "../../../../../types/TypeApplication";
 
 const { Text } = Typography;
+const { TextArea } = Input;
+const { Option } = Select;
 
 type Resume = {
   id: number;
   candidateName: string;
   email: string;
-  status: "NEW" | "VIEWED" | "PASSED" | "REJECTED";
+  status: string;
   pdfUrl: string;
 };
+
 interface ListResumeProps {
   open: boolean;
   onClose: () => void;
+  listResume?: IApplication[];
 }
-const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
-  const navigate = useNavigate();
-  const data: Resume[] = [
-    {
-      id: 1,
-      candidateName: "Nguyễn Văn A",
-      email: "a.nguyen@gmail.com",
-      status: "NEW",
-      pdfUrl: "https://console.cloudinary.com/app/c-e9b4853ecf1141d3ea69964c9d0585/assets/media_library/search/asset/8efd32a671410857e92ffa4989168a06/manage/summary?q=&view_mode=mosaic&context=manage",
-    },
-    {
-      id: 2,
-      candidateName: "Trần Thị B",
-      email: "b.tran@gmail.com",
-      status: "VIEWED",
-      pdfUrl: "/cv/b.pdf",
-    },
-  ];
 
+const ListResume: React.FC<ListResumeProps> = ({
+  open,
+  onClose,
+  listResume,
+}) => {
+  const navigate = useNavigate();
+
+  const [filterStatus, setFilterStatus] = useState<string>("ALL");
+  const [rejectModal, setRejectModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [loadingId, setLoadingId] = useState<number | null>(null);
+
+  // ================= MAP DATA =================
+  const data: Resume[] =
+    listResume?.map((app) => ({
+      id: app.id,
+      candidateName: app?.candidate?.fullName ?? "Chưa cập nhật",
+      email: app?.candidate?.email ?? "Chưa cập nhật",
+      status: app.status?.trim().toUpperCase() ?? "PENDING",
+      pdfUrl: app?.candidate?.profile?.cvFileUrl ?? "",
+    })) ?? [];
+
+  // ================= FILTER DATA =================
+  const filteredData = useMemo(() => {
+    if (filterStatus === "ALL") return data;
+    return data.filter((item) => item.status === filterStatus);
+  }, [data, filterStatus]);
+
+  // ================= APPROVE =================
+  const handleApprove = async (id: number) => {
+    try {
+      setLoadingId(id);
+
+      // CALL API APPROVE
+      // await axios.put(`/api/application/${id}/approve`);
+
+      message.success("Đã phê duyệt ứng viên");
+    } catch {
+      message.error("Xử lý thất bại");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  // ================= REJECT =================
+  const handleReject = async () => {
+    if (!rejectReason.trim()) {
+      message.warning("Vui lòng nhập lý do từ chối");
+      return;
+    }
+
+    try {
+      if (!selectedId) return;
+
+      setLoadingId(selectedId);
+
+      // CALL API REJECT
+      // await axios.put(`/api/application/${selectedId}/reject`, {
+      //   reason: rejectReason,
+      // });
+
+      message.success("Đã từ chối ứng viên");
+      setRejectModal(false);
+      setRejectReason("");
+    } catch {
+      message.error("Xử lý thất bại");
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  // ================= TABLE =================
   const columns: ColumnsType<Resume> = [
     {
       title: "Ứng viên",
@@ -60,34 +131,29 @@ const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
     {
       title: "Trạng thái",
       dataIndex: "status",
-      width: 120,
       align: "center",
-      render: (s) => (
-        <Tag
-          color={
-            s === "NEW"
-              ? "blue"
-              : s === "VIEWED"
-                ? "gold"
-                : s === "PASSED"
-                  ? "green"
-                  : "red"
-          }
-        >
-          {s}
-        </Tag>
-      ),
+      render: (status) => {
+        const color =
+          status === "PENDING"
+            ? "blue"
+            : status === "APPROVED"
+            ? "green"
+            : "red";
+
+        return <Tag color={color}>{status}</Tag>;
+      },
     },
     {
       title: "CV",
-      width: 120,
       align: "center",
       render: (_, r) => (
         <Space>
           <Button
             type="text"
             icon={<EyeOutlined />}
-            onClick={() => navigate(`/admin/cv/${r.id}`, { state: { pdfUrl: r.pdfUrl } })}
+            onClick={() =>
+              navigate(`/admin/cv/${r.id}`, { state: { pdfUrl: r.pdfUrl } })
+            }
           />
           <Button
             type="text"
@@ -97,29 +163,91 @@ const ListResume: React.FC<ListResumeProps> = ({ open, onClose }) => {
         </Space>
       ),
     },
+    {
+      title: "Hành động",
+      align: "center",
+      render: (_, r) =>
+        r.status === "PENDING" ? (
+          <Space>
+            <Button
+              type="primary"
+              loading={loadingId === r.id}
+              onClick={() => handleApprove(r.id)}
+            >
+              Phê duyệt
+            </Button>
+
+            <Button
+              danger
+              loading={loadingId === r.id}
+              onClick={() => {
+                setSelectedId(r.id);
+                setRejectModal(true);
+              }}
+            >
+              Từ chối
+            </Button>
+          </Space>
+        ) : (
+          <Text type="secondary">Đã xử lý</Text>
+        ),
+    },
   ];
 
   return (
-    <Modal
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={800}
-      title={
-        <Space>
-          <FilePdfOutlined />
-          CV ứng tuyển
-        </Space>
-      }
-    >
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={data}
-        pagination={false}
-        size="middle"
-      />
-    </Modal>
+    <>
+      <Modal
+        open={open}
+        onCancel={onClose}
+        footer={null}
+        width={1100}
+        title={
+          <Space>
+            <FilePdfOutlined />
+            Quản lý CV ứng tuyển
+          </Space>
+        }
+      >
+        {/* FILTER */}
+        <div style={{ marginBottom: 16 }}>
+          <Select
+            value={filterStatus}
+            style={{ width: 220 }}
+            onChange={setFilterStatus}
+          >
+            <Option value="ALL">Tất cả</Option>
+            <Option value="PENDING">Chờ xử lý</Option>
+            <Option value="APPROVED">Đã phê duyệt</Option>
+            <Option value="REJECTED">Đã từ chối</Option>
+          </Select>
+        </div>
+
+        <Table
+          rowKey="id"
+          columns={columns}
+          dataSource={filteredData}
+          pagination={{ pageSize: 5 }}
+        />
+      </Modal>
+
+      {/* REJECT MODAL */}
+      <Modal
+        open={rejectModal}
+        onCancel={() => setRejectModal(false)}
+        onOk={handleReject}
+        okText="Xác nhận từ chối"
+        cancelText="Huỷ"
+        confirmLoading={loadingId !== null}
+        title="Nhập lý do từ chối"
+      >
+        <TextArea
+          rows={4}
+          placeholder="Nhập lý do gửi cho ứng viên..."
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+        />
+      </Modal>
+    </>
   );
 };
 

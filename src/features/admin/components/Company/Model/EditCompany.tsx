@@ -29,7 +29,8 @@ const EditCompany: React.FC<IEditCompanyProps> = ({
         website: initialData.website,
         status: initialData.status,
       });
-      setCurrentLogo(initialData.logoUrl || '');
+      // Handle both camelCase and snake_case from API
+      setCurrentLogo(initialData.logoUrl || (initialData as any).logo_url || '');
       setLogoFile(null);
     }
   }, [visible, initialData, form]);
@@ -37,23 +38,20 @@ const EditCompany: React.FC<IEditCompanyProps> = ({
   const handleSubmit = async (values: any) => {
     try {
       setLoading(true);
-      const submitData: Partial<ICompany> = {
-        id: initialData?.id,
+      const submitData: any = {
         name: values.name,
         description: values.description,
         website: values.website,
         status: values.status,
       };
 
-      if (logoFile?.originFileObj) {
-        submitData.logoUrl = logoFile.originFileObj as any;
+      if (logoFile) {
+        submitData.logo = logoFile.originFileObj || logoFile;
       }
 
       await onSubmit(submitData);
-      
+
       message.success('Cập nhật công ty thành công!');
-      form.resetFields();
-      setLogoFile(null);
       onClose();
     } catch (error: any) {
       message.error(error.message || 'Có lỗi xảy ra');
@@ -63,7 +61,8 @@ const EditCompany: React.FC<IEditCompanyProps> = ({
   };
 
   const handleUploadChange = ({ file }: any) => {
-    setLogoFile(file);
+    // Only keep the most recent file
+    setLogoFile(file.status === 'removed' ? null : file);
   };
 
   const handleRemoveLogoClick = () => {
@@ -89,9 +88,9 @@ const EditCompany: React.FC<IEditCompanyProps> = ({
       {initialData && (
         <div style={{ marginBottom: 20, padding: '12px', backgroundColor: '#fafafa', borderRadius: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Avatar 
-              src={currentLogo} 
-              icon={<BankOutlined />} 
+            <Avatar
+              src={currentLogo}
+              icon={<BankOutlined />}
               size={48}
             />
             <div>
@@ -160,9 +159,9 @@ const EditCompany: React.FC<IEditCompanyProps> = ({
             <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
               <Avatar src={currentLogo} size={40} icon={<BankOutlined />} />
               <span style={{ fontSize: 12, color: '#666' }}>Logo hiện tại</span>
-              <Button 
-                type="text" 
-                danger 
+              <Button
+                type="text"
+                danger
                 size="small"
                 onClick={handleRemoveLogoClick}
               >
@@ -174,6 +173,7 @@ const EditCompany: React.FC<IEditCompanyProps> = ({
             maxCount={1}
             accept="image/*"
             onChange={handleUploadChange}
+            beforeUpload={() => false}
             listType="picture"
           >
             <Button icon={<UploadOutlined />}>

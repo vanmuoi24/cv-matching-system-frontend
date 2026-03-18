@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import InfoModal from '../Modal/InfoModal';
 import { useRef, useState } from 'react';
+import instance from '../../../../../service/Axios/Axios';
+import type { AxiosProgressEvent } from 'axios';
 
 // Mock data based on User and CandidateProfile entities
 const mockUserData = {
@@ -29,15 +31,74 @@ const Info = () => {
 		setIsOpen(true);
 	};
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [uploading, setUploading] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState(0);
+	const [uploadedFileName, setUploadedFileName] = useState<string | null>(
+		mockUserData.cvFileUrl ? 'CV đã tải lên' : null
+	);
 
 	const handleUploadCV = () => {
 		fileInputRef.current?.click();
 	};
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e?.target?.files?.[0];
-		if (file) {
-			alert('File đã chọn: ' + file?.name);
+		if (!file) return;
+
+		// Validate type
+		const allowed = ['application/pdf',
+			'application/msword',
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+		if (!allowed.includes(file.type)) {
+			alert('Vui lòng chọn file định dạng pdf, doc, hoặc docx');
+			return;
+		}
+
+		// Validate size <= 5MB
+		const maxSize = 5 * 1024 * 1024;
+		if (file.size > maxSize) {
+			alert('Kích thước file vượt quá 5MB');
+			return;
+		}
+
+		try {
+			setUploading(true);
+			setUploadProgress(0);
+
+			const formData = new FormData();
+			formData.append('file', file);
+
+			// Adjust endpoint as backend expects. Using a candidate profile CV endpoint.
+			const res = await instance.post('/candidates/profile/cv', formData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+				onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+					if (progressEvent.total) {
+						const percentCompleted = Math.round(
+							(progressEvent.loaded * 100) / progressEvent.total
+						);
+						setUploadProgress(percentCompleted);
+					}
+				},
+			});
+
+			// instance interceptor returns response.data; assume it contains file url
+			const uploadedUrl = res?.data?.cvFileUrl ?? res?.cvFileUrl ?? null;
+			setUploadedFileName(file.name);
+			if (uploadedUrl) {
+				// optionally update local mock or state
+				// mockUserData.cvFileUrl = uploadedUrl; // don't mutate const in real app
+				alert('Tải lên thành công');
+			} else {
+				alert('Tải lên hoàn tất');
+			}
+		} catch (err: any) {
+			console.error('Upload error', err);
+			alert('Có lỗi xảy ra khi tải lên CV');
+		} finally {
+			setUploading(false);
+			setTimeout(() => setUploadProgress(0), 800);
 		}
 	};
 	return (
@@ -89,7 +150,7 @@ const Info = () => {
 									icon={<Briefcase size={16} />}
 									label={
 										mockUserData.experienceYear !==
-										'Chưa cập nhật số năm kinh nghiệm'
+											'Chưa cập nhật số năm kinh nghiệm'
 											? `${mockUserData.experienceYear} năm kinh nghiệm`
 											: 'Thêm kinh nghiệm'
 									}
@@ -103,8 +164,10 @@ const Info = () => {
 						<h3 className='font-bold mb-4'>CV của tôi</h3>
 						<div className='border-2 border-dashed border-purple-200 rounded-lg p-8 flex flex-col items-center justify-center bg-purple-50/30'>
 							<button
-								className='bg-purple-100 text-purple-700 px-6 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-purple-200 transition  cursor-pointer'
+								className={`bg-purple-100 text-purple-700 px-6 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-purple-200 transition  cursor-pointer ${uploading ? 'opacity-60 cursor-not-allowed' : ''
+									}`}
 								onClick={handleUploadCV}
+								disabled={uploading}
 							>
 								<Upload size={18} /> Tải lên CV có sẵn
 							</button>
@@ -118,6 +181,21 @@ const Info = () => {
 							<p className='mt-3 text-xs text-gray-500'>
 								Hỗ trợ định dạng: doc, docx, pdf, tối đa 5MB
 							</p>
+							{uploading ? (
+								<div className='w-full mt-3'>
+									<div className='w-full bg-gray-200 rounded-full h-2'>
+										<div
+											className='bg-purple-600 h-2 rounded-full'
+											style={{ width: `${uploadProgress}%` }}
+										/>
+									</div>
+									<p className='text-xs text-gray-500 mt-1'>{uploadProgress}%</p>
+								</div>
+							) : (
+								uploadedFileName && (
+									<p className='mt-3 text-sm text-gray-600'>Đã tải lên: {uploadedFileName}</p>
+								)
+							)}
 						</div>
 					</div>
 				</div>

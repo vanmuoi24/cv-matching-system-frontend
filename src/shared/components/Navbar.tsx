@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 import bagIcon from '../../assets/icons/briefcaseIcon.png';
 import teamIcon from '../../assets/icons/teamIcon.png';
+
 import avt from '../../assets/imgs/avt.png';
 import { ChevronDown } from 'lucide-react';
 import {
@@ -18,7 +19,9 @@ interface INavbarProps {
 }
 
 const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
-	const user = localStorage.getItem('user');
+
+	let userLocal = localStorage.getItem('user');
+	let user = userLocal ? JSON.parse(userLocal) : null;
 	const [modal, contextHolder] = Modal.useModal();
 
 	const handleLogout = () => {
@@ -38,12 +41,12 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 	return (
 		<header>
 			{contextHolder}
-			<div className='flex items-center'>
+			<div className='flex items-center h-14 sm:h-16'>
 				{/* Logo */}
 				<div className='flex-1'>
 					<Link
 						to={`/${isRecruiter ? 're' : 'ca'}`}
-						className='text-2xl font-bold text-[#4fccff]'
+						className='text-xl sm:text-2xl font-bold text-[#4fccff] tracking-tight'
 					>
 						CV
 						<span
@@ -57,16 +60,19 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 				</div>
 
 				{/* Menu */}
-				<nav className='flex flex-3 gap-1 '>
+				<nav className='hidden md:flex flex-3 gap-1 items-stretch'>
 					{navItems.map((item) => (
 						<NavLink
 							key={item.to}
 							to={item.to}
 							className={({ isActive }) =>
-								`relative px-3 py-5 font-semibold text-[15px] 
-								${isRecruiter ? 'hover:bg-[#efeff0] text-[#414045] ' : 'hover:bg-[#2f0d7b] text-white'} transition 
-								${isActive && '  text-[#4fccff]!'} 
-								`
+								[
+									'relative px-3 py-2 my-2 rounded-lg font-semibold text-[15px] transition',
+									isRecruiter
+										? 'text-[#414045] hover:bg-white/70'
+										: 'text-white hover:bg-[#2f0d7b]',
+									isActive ? 'text-[#4fccff]!' : '',
+								].join(' ')
 							}
 						>
 							{item.label}
@@ -76,10 +82,30 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 
 				{/* Auth */}
 
-				<div className='flex flex-2 justify-end items-center'>
+				<div className='flex flex-2 justify-end items-center gap-2'>
+					<Link
+						to={`/auth/${isRecruiter ? 're' : 'ca'}/login`}
+						className='text-white font-semibold '
+					>
+						<div
+							className={`${isRecruiter ? 'hover:bg-white/70 text-[#414045] border-[#d5d5d5] ' : 'hover:bg-[#2f0d7b] text-white border-white/20'} px-3 py-2 rounded-lg border text-center transition`}
+							style={{ width: 132 }}
+						>
+							<span className='text-[12px]'>Người tìm việc</span>
+							<br />
+
+							
+						</div>
+					</Link>
+
 					{user ? (
 						<div className='relative group'>
-							<div className='flex items-center gap-2 py-2 px-4  border-[#8b8b8b] border-r hover:bg-[#2f0d7b] cursor-pointer transition duration-300'>
+							<div
+								className={[
+									'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer transition duration-300',
+									isRecruiter ? 'hover:bg-white/70' : 'hover:bg-[#2f0d7b]',
+								].join(' ')}
+							>
 								<img
 									src={avt}
 									className='w-10 h-10 rounded-full'
@@ -168,7 +194,7 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 							className='text-white font-semibold '
 						>
 							<div
-								className={`${isRecruiter ? 'hover:bg-[#efeff0] text-[#414045] border-[#d5d5d5] ' : 'hover:bg-[#2f0d7b] text-white border-white/20'} px-4 py-2 border-r `}
+								className={`${isRecruiter ? 'hover:bg-white/70 text-[#414045] border-[#d5d5d5] ' : 'hover:bg-[#2f0d7b] text-white border-white/20'} px-3 py-2 rounded-lg border transition`}
 							>
 								<span className='text-[12px]'>Người tìm việc</span>
 								<br />
@@ -179,7 +205,7 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 
 					<Link
 						to={`/${isRecruiter ? 'ca' : 're'}`}
-						className={`min-w-[180px] flex items-center font-semibold gap-2 px-4 py-2 cursor-pointer  ${isRecruiter ? 'hover:bg-[#efeff0] text-[#414045] ' : 'hover:bg-[#2f0d7b] text-white'}  `}
+						className={`min-w-[180px] flex items-center font-semibold gap-2 px-3 py-2 rounded-lg cursor-pointer transition ${isRecruiter ? 'hover:bg-white/70 text-[#414045]' : 'hover:bg-[#2f0d7b] text-white'}  `}
 					>
 						<img
 							src={isRecruiter ? teamIcon : bagIcon}
@@ -199,5 +225,6 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 		</header>
 	);
 };
+
 
 export default Navbar;

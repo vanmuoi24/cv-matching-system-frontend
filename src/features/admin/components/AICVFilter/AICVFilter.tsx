@@ -1,13 +1,15 @@
-import { ProTable } from "@ant-design/pro-components";
+import { ProTable, type ProColumns } from "@ant-design/pro-components";
 import { Button, Tag, Space, Statistic, Typography } from "antd";
 import {
   RobotOutlined,
   ApartmentOutlined,
   FileTextOutlined,
-  PlusOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { IJob } from "../../../../types/TypeJob";
+import { GetListJob } from "../../../../service/Api/Job/Job";
+
 
 const { Text } = Typography;
 
@@ -15,52 +17,53 @@ const JobListForAI = () => {
   const navigate = useNavigate();
   const actionRef = useRef<any>(null);
 
-  const dataSource = [
-    {
-      id: 1,
-      title: "Frontend Developer (ReactJS)",
-      company: "SmartCV",
-      totalCv: 10248,
-      status: "OPEN",
-    },
-    {
-      id: 2,
-      title: "Backend Developer (Java)",
-      company: "Tech Corp",
-      totalCv: 5321,
-      status: "OPEN",
-    },
-  ];
+  const [dataJob, setDataJob] = useState<IJob[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const columns = [
+  const fetchDataJob = async () => {
+    try {
+      setLoading(true);
+      const res = await GetListJob();
+
+      if (res && res.code === 1000 && res.result) {
+        setDataJob(res.result); 
+      }
+    } catch (error) {
+      console.error("Fetch job error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDataJob();
+  }, []);
+
+  const columns: ProColumns<IJob>[] = [
     {
       title: "Vị trí tuyển dụng",
       dataIndex: "title",
       width: 360,
-      render: (_: any, record: any) => (
+      render: (_, record) => (
         <Space direction="vertical" size={6}>
           <Text strong style={{ fontSize: 14 }}>
             {record.title}
           </Text>
           <Space size={6}>
             <ApartmentOutlined style={{ color: "#999" }} />
-            <Text type="secondary">{record.company}</Text>
+            <Text type="secondary">{record.company?.name}</Text>
           </Space>
         </Space>
       ),
     },
     {
       title: "CV đã nộp",
-      dataIndex: "totalCv",
+      dataIndex: "applicationList",
       width: 200,
-      render: (v: number) => (
+      render: (vapplicationList: any) => (
         <Space>
           <FileTextOutlined style={{ color: "#1677ff" }} />
-          <Statistic
-            value={v}
-            suffix="CV"
-            valueStyle={{ fontSize: 18 }}
-          />
+          <Statistic value={vapplicationList.length || 0} suffix="CV" valueStyle={{ fontSize: 18 }} />
         </Space>
       ),
     },
@@ -68,16 +71,16 @@ const JobListForAI = () => {
       title: "Trạng thái",
       dataIndex: "status",
       width: 160,
-      render: () => (
-        <Tag color="green" style={{ padding: "4px 10px" }}>
-          Đang tuyển
+      render: (v) => (
+        <Tag color={v === "OPEN" ? "green" : "red"} style={{ padding: "4px 10px" }}>
+          {v === "OPEN" ? "Đang tuyển" : "Đã đóng"}
         </Tag>
       ),
     },
     {
       title: "AI Screening",
       width: 240,
-      render: (_: any, record: any) => (
+      render: (_, record) => (
         <Button
           type="primary"
           size="middle"
@@ -96,30 +99,39 @@ const JobListForAI = () => {
   ];
 
   return (
-    <ProTable
+    <ProTable<IJob>
       actionRef={actionRef}
       rowKey="id"
-      columns={columns as any}
-      dataSource={dataSource}
+      columns={columns}
+      dataSource={dataJob}
+      loading={loading}
       search={false}
       headerTitle={
         <Space direction="vertical" size={0}>
-          <Text style={{ fontSize: 22, fontWeight: 300 }}>
-            🤖 AI CV Screening
+          <Text style={{ fontSize: 22, fontWeight: 600 }}>
+            AI CV Screening
           </Text>
           <Text type="secondary">
             Chọn job để AI tự động chấm điểm & lọc CV phù hợp
           </Text>
         </Space>
       }
- 
+      toolBarRender={() => [
+        <Button
+          key="refresh"
+          onClick={fetchDataJob}
+          loading={loading}
+        >
+          Tải lại danh sách
+        </Button>,
+      ]}
       pagination={{
         pageSize: 5,
         showSizeChanger: true,
         showQuickJumper: true,
       }}
       options={{
-        reload: false,
+        reload: true,
         density: true,
         fullScreen: true,
         setting: true,
