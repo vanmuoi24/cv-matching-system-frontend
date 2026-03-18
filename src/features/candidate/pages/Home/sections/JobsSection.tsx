@@ -53,6 +53,7 @@ const JobSection = () => {
 	>('place');
 
 	const [jobs, setJobs] = useState<IJob[]>([]);
+	const [activeTab, setActiveTab] = useState('Tất cả');
 
 	useEffect(() => {
 		const getJobs = async () => {
@@ -69,11 +70,19 @@ const JobSection = () => {
 	}, []);
 
 	const handleSelectChange = (value: string) => {
-		console.log(value);
-		console.log(
-			dataScrollMenu[value as 'place' | 'profession' | 'experience' | 'salary'],
-		);
+		setActiveTab('Tất cả');
 		setFilterValue(value as 'place' | 'profession' | 'experience' | 'salary');
+		handleFilter(value, 'Tất cả');
+	};
+
+	const handleChangeFilter = (value: string) => {
+		setActiveTab(value);
+		handleFilter(filterValue, value);
+	};
+
+	const handleFilter = (value: string, tab: string) => {
+		console.log('loc theo ', value, tab);
+		
 	};
 
 	const sProps: SelectProps = {
@@ -96,7 +105,7 @@ const JobSection = () => {
 			},
 		],
 		className: 'font-semibold! rounded-md',
-		value: 'place',
+		value: filterValue,
 		onChange: handleSelectChange,
 	};
 
@@ -140,6 +149,8 @@ const JobSection = () => {
 							<FilterScrollMenu
 								data={dataScrollMenu[filterValue]}
 								theme='#FF5722'
+								activeTab={activeTab}
+								onChangeFilter={handleChangeFilter}
 							/>
 						</div>
 					</div>

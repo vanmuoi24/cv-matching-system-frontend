@@ -114,7 +114,7 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 								<div className='bg-white rounded-2xl shadow-2xl border border-gray-100 w-60 p-2'>
 									{/* Item 1 */}
 									<Link
-										to='/ca/profile'
+										to='/ca/profile/info'
 										className='flex items-center p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-all group'
 									>
 										<UserOutlined className='text-blue-500 text-lg mr-3' />

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Button } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import './FilterScrollMenu.css';
@@ -6,13 +6,15 @@ import './FilterScrollMenu.css';
 const FilterScrollMenu = ({
 	data,
 	css,
-	theme,
+	activeTab,
+	onChangeFilter,
 }: {
 	data: string[];
 	css?: string;
 	theme: string;
+	activeTab: string;
+	onChangeFilter: (value: string) => void;
 }) => {
-	const [activeTab, setActiveTab] = useState('Tất cả');
 	const scrollRef = useRef<HTMLDivElement>(null);
 
 	if (!data) {
@@ -48,20 +50,20 @@ const FilterScrollMenu = ({
 					ref={scrollRef}
 					className='flex overflow-x-auto gap-3 scroll-smooth no-scrollbar py-2 px-1'
 				>
-					{data.map((location, index) => (
+					{data.map((item, index) => (
 						<button
-							key={`${location}-${index}`}
-							onClick={() => setActiveTab(location)}
+							key={`${item}-${index}`}
+							onClick={() => onChangeFilter(item)}
 							className={`
               whitespace-nowrap px-5 py-2 rounded-full font-medium transition-all duration-200 border cursor-pointer
               ${
-								activeTab === location
+								activeTab === item
 									? ` bg-[#2f0d7b] text-white border-[#2f0d7b] shadow-md` // Style khi Active
 									: `bg-white text-gray-700 border-[#2f0d7b] hover:bg-gray-100 shadow-sm` // Style mặc định
 							}
             `}
 						>
-							{location}
+							{item}
 						</button>
 					))}
 				</div>
