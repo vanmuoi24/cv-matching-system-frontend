@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { JobsApi } from '../../../../../service/Api/Job/Job';
+import type { IJob } from '../../../../../types/TypeJob';
+import { formatSalary } from '../../../../../shared/utils/formatSalary';
 import {
 	Button,
 	Input,
@@ -7,11 +11,12 @@ import {
 	Tag,
 	TreeSelect,
 	Pagination,
-	Divider,
+	Empty,
+	type SelectProps,
+	type TreeSelectProps,
 } from 'antd';
 import {
 	SearchOutlined,
-	FilterOutlined,
 	EnvironmentOutlined,
 	DollarOutlined,
 	HeartOutlined,
@@ -27,168 +32,32 @@ import googleIcon from '../../../../../assets/icons/googleIcon.png';
 
 // --- Types & Mock Data ---
 
-interface Job {
-	id: number;
-	title: string;
-	company: string;
-	salary: string;
-	location: string;
-	daysLeft: number;
-	logo: string;
-	isHot?: boolean;
-}
-
-const baseJobs: Job[] = [
-	{
-		id: 1,
-		title: 'Thực Tập Sinh Đi Làm Sau Tết',
-		company:
-			'Công Ty Cổ Phần Bất Động Sản Xây Dựng Trang Trí Nội Thất Vương Điền Group',
-		salary: '1 - 100 triệu',
-		location: 'TP.HCM',
-		daysLeft: 31,
-		logo: 'V',
-		isHot: true,
-	},
-	{
-		id: 2,
-		title: 'Kỹ Sư Phòng Kinh Tế - Kế Hoạch - Đi Làm Sau Tết',
-		company: 'Công Ty Cổ Phần Đầu Tư Và Xây Dựng Maxline',
-		salary: '13 - 20 triệu',
-		location: 'Hà Nội',
-		daysLeft: 36,
-		logo: 'M',
-		isHot: true,
-	},
-	{
-		id: 3,
-		title: 'Kỹ Sư Xây Dựng - Đi Làm Sau Tết',
-		company: 'Công Ty Cổ Phần Đầu Tư Và Xây Dựng Maxline',
-		salary: '15 - 25 triệu',
-		location: 'Hà Nội',
-		daysLeft: 36,
-		logo: 'M',
-		isHot: true,
-	},
-	{
-		id: 4,
-		title: 'Nhân Viên Bán Hàng - Quầy Dịch Vụ Bách Hoá Lưu Niệm',
-		company:
-			'Chi Nhánh Tại Thành Phố Hồ Chí Minh - Công Ty CP Dịch Vụ Hàng Không Bầu Trời Xanh',
-		salary: '8.8 - 10 triệu',
-		location: 'TP.HCM',
-		daysLeft: 28,
-		logo: 'B',
-		isHot: false,
-	},
-	{
-		id: 5,
-		title: 'Nhân Viên Kinh Doanh - Thu Nhập 10 - 30 Triệu',
-		company: 'Công Ty TNHH Sản Xuất Tùng Khánh',
-		salary: '10 - 30 triệu',
-		location: 'Hà Nội',
-		daysLeft: 30,
-		logo: 'T',
-		isHot: false,
-	},
-];
-
-// Mock Data cho việc làm gợi ý (Sidebar)
-const suggestedJobs = [
-	{
-		id: 101,
-		title: 'Trưởng Phòng Kinh Doanh',
-		salary: '20 - 30 triệu',
-		location: 'Hà Nội',
-		time: '1 giờ trước',
-	},
-	{
-		id: 102,
-		title: 'Nhân Viên Marketing Online',
-		salary: '10 - 15 triệu',
-		location: 'TP.HCM',
-		time: '2 giờ trước',
-	},
-	{
-		id: 103,
-		title: 'Kế Toán Tổng Hợp',
-		salary: '12 - 18 triệu',
-		location: 'Đà Nẵng',
-		time: 'Vừa xong',
-	},
-	{
-		id: 104,
-		title: 'Lập Trình Viên ReactJS',
-		salary: 'Up to $2000',
-		location: 'Remote',
-		time: '1 ngày trước',
-	},
-];
-
 // Tạo danh sách dài hơn (50 jobs) để test phân trang
-const mockJobs: Job[] = Array.from({ length: 50 }).map((_, index) => ({
-	...baseJobs[index % baseJobs.length],
-	id: index + 1,
-	title: `${baseJobs[index % baseJobs.length].title} (Job #${index + 1})`,
-}));
-
-const dataSelect = {
-	salary: [
-		'Tất cả mức lương',
-		'Dưới 1 triệu',
-		'1-10 triệu',
-		'10-15 triệu',
-		'15-20 triệu',
-		'Trên 25 triệu',
-	],
-	experience: [
-		'Tất cả kinh nghiệm',
-		'Dưới 1 năm',
-		'1-2 năm',
-		'2-3 năm',
-		'3-5 năm',
-		'5-10 năm',
-		'Trên 10 năm',
-	],
-	rank: [
-		'Tất cả cấp bậc',
-		'Giám đốc',
-		'Trưởng phòng',
-		'Nhân viên',
-		'Thực tập sinh',
-		'Cộng tác viên',
-	],
-};
 
 const { SHOW_PARENT } = TreeSelect;
 
-const professionData = [
-	{ title: 'IT - Phần mềm', value: '0', key: '0' },
-	{ title: 'IT - Phần cứng', value: '1', key: '1' },
-	{ title: 'Khách sạn - Nhà hàng - Du lịch', value: '2', key: '2' },
-];
-const placeData = [
-	{ label: 'Hà Nội', value: 'Hà Nội' },
-	{ label: 'Hồ Chí Minh', value: 'Hồ Chí Minh' },
-	{ label: 'Đà Nẵng', value: 'Đà Nẵng' },
-];
-
 const { Option } = Select;
 
+
 // --- Sub-Components ---
-const JobCard: React.FC<{ job: Job }> = ({ job }) => {
+const JobCard: React.FC<{ job: IJob }> = ({ job }) => {
+	const navigate = useNavigate();
 	const [liked, setLiked] = useState(false);
 
 	return (
-		<div className='bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group relative mb-3'>
+		<div
+			onClick={() => navigate(`/ca/job/${job.id}`)}
+			className='bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer group relative mb-3'
+		>
 			<div className='flex gap-4'>
 				<div className='flex-shrink-0'>
 					<Avatar
 						shape='square'
 						size={64}
+						src={job.company?.logoUrl}
 						className='bg-gray-100 text-purple-700 font-bold text-2xl border border-gray-100'
 					>
-						{job.logo}
+						{!job.company?.logoUrl && job.company?.name?.charAt(0)}
 					</Avatar>
 				</div>
 				<div className='flex-1'>
@@ -211,14 +80,15 @@ const JobCard: React.FC<{ job: Job }> = ({ job }) => {
 						</button>
 					</div>
 					<div className='text-gray-500 text-sm mt-1 mb-2 line-clamp-1'>
-						{job.company}
+						{job.company?.name || 'Đang cập nhật'}
 					</div>
 					<div className='flex items-center gap-4 text-sm text-gray-600 mb-2'>
 						<Tag
 							color='default'
 							className='border-none bg-gray-100 text-gray-600 flex items-center gap-1 px-2 py-1 rounded'
 						>
-							<DollarOutlined className='text-gray-400' /> {job.salary}
+							<DollarOutlined className='text-gray-400' />{' '}
+							{formatSalary(job.minSalary, job.maxSalary)}
 						</Tag>
 						<Tag
 							color='default'
@@ -231,12 +101,13 @@ const JobCard: React.FC<{ job: Job }> = ({ job }) => {
 			</div>
 			<div className='mt-2 flex justify-between items-end border-t border-dashed border-gray-100 pt-2'>
 				<div className='text-purple-600'>
-					{job.isHot && (
+					{job.status === 'HOT' && (
 						<ThunderboltFilled style={{ fontSize: '18px', color: '#8b5cf6' }} />
 					)}
 				</div>
 				<div className='text-gray-400 text-xs flex items-center gap-1'>
-					<ClockCircleOutlined /> Còn {job.daysLeft} ngày
+					<ClockCircleOutlined /> Đăng lúc{' '}
+					{new Date(job.createAt).toLocaleDateString()}
 				</div>
 			</div>
 		</div>
@@ -246,17 +117,108 @@ const JobCard: React.FC<{ job: Job }> = ({ job }) => {
 // --- Main Page Component ---
 
 const JobList: React.FC = () => {
+	const [searchParams] = useSearchParams();
 	const [professions, setProfessions] = useState<string[]>([]);
-	const [place, setPlace] = useState<string>('');
+	const [place, setPlace] = useState<string | undefined>(undefined);
+	const [jobTitleValue, setJobTitleValue] = useState<string>('');
+	const [sortBy, setSortBy] = useState<string>('relevant');
+	const [professionOptions, setProfessionOptions] = useState<
+		TreeSelectProps['treeData']
+	>([]);
+	const [placeOptions, setPlaceOptions] = useState<
+		{ label: string; value: string }[]
+	>([]);
+	const [allJobs, setAllJobs] = useState<IJob[]>([]);
+
+	useEffect(() => {
+		const fetchJobs = async () => {
+			try {
+				const response = await JobsApi();
+				if (response.result) {
+					const jobsData: IJob[] = response.result;
+					setAllJobs(jobsData);
+
+					// Extract unique categories
+					const uniqueCategories = [
+						...new Set(jobsData.map((job) => job.category).filter(Boolean)),
+					] as string[];
+					const categoryOptions = uniqueCategories.map((cat) => ({
+						title: cat,
+						value: cat,
+						key: cat,
+					}));
+					setProfessionOptions(categoryOptions);
+
+					// Extract unique locations
+					const uniqueLocations = [
+						...new Set(jobsData.map((job) => job.location).filter(Boolean)),
+					] as string[];
+					const locationOptions = uniqueLocations.map((loc) => ({
+						label: loc,
+						value: loc,
+					}));
+					setPlaceOptions(locationOptions);
+
+					// Initialize filters from searchParams
+					const title = searchParams.get('title');
+					const location = searchParams.get('location');
+					const categories = searchParams.get('categories');
+
+					if (title) setJobTitleValue(title);
+					if (location) setPlace(location);
+					if (categories) setProfessions(categories.split(','));
+				}
+			} catch (error) {
+				console.error('Error fetching jobs:', error);
+			}
+		};
+
+		fetchJobs();
+	}, [searchParams]);
 
 	// State cho Phân trang
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 5;
 
 	// Logic tính toán job hiển thị
+	const filteredJobs = useMemo(() => {
+		const filtered = allJobs.filter((job) => {
+			const matchesTitle = job.title
+				.toLowerCase()
+				.includes(jobTitleValue.toLowerCase());
+			const matchesPlace = place ? job.location === place : true;
+			const matchesCategory =
+				professions.length > 0 ? professions.includes(job.category) : true;
+			return matchesTitle && matchesPlace && matchesCategory;
+		});
+
+		// Apply sorting
+		return [...filtered].sort((a, b) => {
+			if (sortBy === 'newest') {
+				return new Date(b.createAt).getTime() - new Date(a.createAt).getTime();
+			}
+			if (sortBy === 'salary') {
+				return b.maxSalary - a.maxSalary;
+			}
+			// 'relevant' or default: can stay as is or add more logic
+			return 0;
+		});
+	}, [allJobs, jobTitleValue, place, professions, sortBy]);
+
+	const suggestedJobs = useMemo(() => {
+		// Logic: Lấy các công việc HOT lên đầu, sau đó là mới nhất
+		return [...allJobs]
+			.sort((a, b) => {
+				if (a.status === 'HOT' && b.status !== 'HOT') return -1;
+				if (a.status !== 'HOT' && b.status === 'HOT') return 1;
+				return new Date(b.createAt).getTime() - new Date(a.createAt).getTime();
+			})
+			.slice(0, 5);
+	}, [allJobs]);
+
 	const startIndex = (currentPage - 1) * pageSize;
 	const endIndex = startIndex + pageSize;
-	const displayedJobs = mockJobs.slice(startIndex, endIndex);
+	const displayedJobs = filteredJobs.slice(startIndex, endIndex);
 
 	// Hàm xử lý khi đổi trang
 	const handlePageChange = (page: number) => {
@@ -274,22 +236,32 @@ const JobList: React.FC = () => {
 		console.log('onSearchPlace ', value);
 	};
 
-	const tProps: any = {
-		treeData: professionData,
+	const tProps: TreeSelectProps = {
+		treeData: professionOptions,
 		value: professions,
 		onChange: onChangeProfessions,
 		treeCheckable: true,
 		showCheckedStrategy: SHOW_PARENT,
 		placeholder: 'Chọn ngành nghề',
+		allowClear: true,
 		style: { width: '100%' },
 	};
 
-	const sProps: any = {
-		showSearch: { optionFilterProp: 'label', onSearch: onSearchPlace },
+	const sProps: SelectProps = {
+		showSearch: true,
+		optionFilterProp: 'label',
+		onSearch: onSearchPlace,
 		placeholder: 'Chọn địa điểm làm việc',
 		onChange: onChangePlace,
-		options: placeData,
+		value: place,
+		allowClear: true,
+		options: placeOptions,
 		style: { width: '100%' },
+	};
+	const handleClearFilters = () => {
+		setJobTitleValue('');
+		setProfessions([]);
+		setPlace(undefined);
 	};
 
 	return (
@@ -303,6 +275,8 @@ const JobList: React.FC = () => {
 								prefix={<SearchOutlined className='text-gray-400' />}
 								placeholder='Tìm kiếm cơ hội việc làm'
 								bordered={false}
+								value={jobTitleValue}
+								onChange={(e) => setJobTitleValue(e.target.value)}
 								className='py-2 font-semibold text-[16px]'
 							/>
 						</div>
@@ -311,7 +285,7 @@ const JobList: React.FC = () => {
 							<TreeSelect
 								className='text-[14px]! font-medium'
 								{...tProps}
-								variant='borderless'
+								bordered={false}
 							/>
 						</div>
 						<div className='w-px h-6 bg-gray-200 hidden md:block'></div>
@@ -319,40 +293,24 @@ const JobList: React.FC = () => {
 							<Select
 								className='text-[14px]! font-medium'
 								{...sProps}
-								variant='borderless'
+								bordered={false}
 							/>
 						</div>
-						<Button
-							type='primary'
-							className='bg-[#451fa3]! font-semibold! hover:bg-[#2f0d7b]! h-10 px-8 w-full md:w-auto rounded border-none'
-						>
-							Tìm kiếm
-						</Button>
-					</div>
-
-					<div className='mt-4 flex flex-wrap gap-3 items-center'>
-						{Object.entries({
-							experience: 'Tất cả kinh nghiệm',
-							salary: 'Tất cả mức lương',
-							rank: 'Tất cả cấp bậc',
-						}).map(([key, value]) => (
-							<Select
-								key={key}
-								defaultValue={value}
-								size='middle'
-								className='min-w-[140px] [&_.ant-select-selector]:!rounded-md'
-								style={{ width: 160 }}
-								options={dataSelect[key as keyof typeof dataSelect].map(
-									(item) => ({ value: item, label: item }),
-								)}
-							/>
-						))}
-						<span className='ml-3 text-sm cursor-pointer text-[#451fa3] flex items-center font-semibold gap-1 hover:opacity-70 transition-all duration-300'>
-							<span className='bg-[#451fa3] rounded-full w-4 h-4 flex items-center justify-center text-[10px] text-white'>
-								<CloseOutlined />
-							</span>{' '}
-							Xoá lọc
-						</span>
+						<div className='flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0'>
+							<Button
+								type='primary'
+								className='bg-[#451fa3]! font-semibold! hover:bg-[#2f0d7b]! h-10 px-8 flex-1 md:flex-none rounded border-none'
+							>
+								Tìm kiếm
+							</Button>
+							<Button
+								icon={<CloseOutlined />}
+								onClick={handleClearFilters}
+								className='h-10 text-gray-500! hover:text-[#451fa3]! border-gray-200! rounded'
+							>
+								Xoá lọc
+							</Button>
+						</div>
 					</div>
 				</div>
 			</Container>
@@ -365,8 +323,8 @@ const JobList: React.FC = () => {
 					<div className='mb-4'>
 						<h1 className='text-2xl font-bold text-gray-800'>
 							Tuyển dụng{' '}
-							<span className='text-purple-700'>{mockJobs.length}</span> việc
-							làm mới nhất
+							<span className='text-purple-700'>{filteredJobs.length}</span>{' '}
+							việc làm mới nhất
 						</h1>
 					</div>
 
@@ -375,7 +333,8 @@ const JobList: React.FC = () => {
 						<div className='flex items-center gap-2 text-sm text-gray-600'>
 							<span>Sắp xếp:</span>
 							<Select
-								defaultValue='relevant'
+								value={sortBy}
+								onChange={(value) => setSortBy(value)}
 								size='small'
 								className='w-32 border-none shadow-sm rounded'
 							>
@@ -387,17 +346,30 @@ const JobList: React.FC = () => {
 					</div>
 
 					{/* Job Items List */}
-					<div className='space-y-3'>
-						{displayedJobs.map((job) => (
-							<JobCard key={job.id} job={job} />
-						))}
+					<div className='space-y-4'>
+						{displayedJobs.length > 0 ? (
+							displayedJobs.map((job) => <JobCard key={job.id} job={job} />)
+						) : (
+							<div className='flex flex-col items-center justify-center py-20 bg-white rounded-lg border border-dashed border-gray-200'>
+								<Empty
+									description={
+										<div className='text-gray-500'>
+											<p className='text-lg font-semibold'>
+												Không tìm thấy việc làm phù hợp
+											</p>
+											<p>Vui lòng thử lại với các từ khoá hoặc bộ lọc khác</p>
+										</div>
+									}
+								/>
+							</div>
+						)}
 					</div>
 
 					{/* Pagination */}
 					<div className='mt-6 flex justify-center'>
 						<Pagination
 							current={currentPage}
-							total={mockJobs.length}
+							total={filteredJobs.length}
 							pageSize={pageSize}
 							onChange={handlePageChange}
 							showSizeChanger={false}
@@ -423,12 +395,12 @@ const JobList: React.FC = () => {
 						>
 							Đăng nhập
 						</Button>
-						<button className='mt-4 w-full flex border border-[#dfdfdf] rounded-lg p-2 outline-none cursor-pointer transition duration-300 hover:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'>
+						{/* <button className='mt-4 w-full flex border border-[#dfdfdf] rounded-lg p-2 outline-none cursor-pointer transition duration-300 hover:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'>
 							<img src={googleIcon} className='w-6' alt='google icon' />
 							<div className='flex-1'>
 								<p className='text-[14px] font-medium'>Đăng nhập với Google</p>
 							</div>
-						</button>
+						</button> */}
 					</div>
 
 					{/* 2. New Suggestion Box (Phần Mới Thêm) */}
@@ -451,13 +423,14 @@ const JobList: React.FC = () => {
 									</div>
 									<div className='flex items-center gap-2 text-xs text-gray-500 mb-2'>
 										<span className='font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100'>
-											{item.salary}
+											{formatSalary(item.minSalary, item.maxSalary)}
 										</span>
 										<span className='text-gray-300'>|</span>
 										<span>{item.location}</span>
 									</div>
 									<div className='text-[11px] text-gray-400 flex items-center gap-1'>
-										<ClockCircleOutlined /> {item.time}
+										<ClockCircleOutlined />{' '}
+										{new Date(item.createAt).toLocaleDateString()}
 									</div>
 								</div>
 							))}

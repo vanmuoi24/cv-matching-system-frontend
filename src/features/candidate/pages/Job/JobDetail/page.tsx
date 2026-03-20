@@ -10,124 +10,61 @@ import {
 	TeamOutlined,
 } from '@ant-design/icons';
 import Container from '../../../../../shared/components/Container';
-import { useParams } from 'react-router-dom';
-import { JobApiById } from '../../../../../service/Api/Job/Job';
+import { useParams, useNavigate } from 'react-router-dom';
+import { JobApiById, JobsApi } from '../../../../../service/Api/Job/Job';
 import type { IJob } from '../../../../../types/TypeJob';
+import { formatSalary } from '../../../../../shared/utils/formatSalary';
+import {
+	CalendarOutlined,
+	GlobalOutlined,
+	SafetyCertificateOutlined,
+} from '@ant-design/icons';
+import ApplyModal from '../../../components/Modal/ApplyModal';
 
 const { Title } = Typography;
-
-// --- Mock Data (Dữ liệu giả lập từ ảnh của bạn) ---
-const jobData = {
-	title: 'Chuyên Viên Tiền Lương Và Phúc Lợi',
-	salary: '12 - 18 triệu',
-	location: 'TP.HCM',
-	experience: '2 năm',
-	level: 'Cao đẳng',
-	deadline: '28/02/2026',
-	companyName: 'Công Ty TNHH Baoz Group',
-	companyAddress: '82-88 Nguyễn Tri Phương, Phường An Đông, Quận 5',
-	companySize: '150 - 300 nhân viên',
-	sections: [
-		{
-			title: 'Mô tả công việc',
-			content: [
-				{
-					subTitle: 'A. Tính và chi trả lương',
-					items: [
-						'Kiểm tra ngày giờ công và thực hiện tính lương hàng tháng cho nhân viên.',
-						'Đảm bảo tính đúng theo quy định pháp luật và quy chế lương của công ty.',
-					],
-				},
-				{
-					subTitle: 'B. Thuế Thu nhập cá nhân (chuyên sâu)',
-					items: [
-						'Thực hiện khấu trừ thuế TNCN hàng tháng...',
-						'Kiểm tra và quyết toán Thuế TNCN năm cho người lao động.',
-					],
-				},
-				// ... thêm các mục khác tương tự
-			],
-		},
-		{
-			title: 'Yêu cầu công việc',
-			items: [
-				'Tối thiểu 02 năm kinh nghiệm C&B, ưu tiên ngành F&B/nhà hàng/khách sạn.',
-				'Thành thạo tính lương từ 300 nhân sự trở lên.',
-				'Chuyên sâu Thuế Thu nhập cá nhân & Quyết toán thuế TNCN.',
-				'Sử dụng tốt Excel.',
-				'Hiểu rõ Luật lao động, Thuế TNCN, BHXH...',
-			],
-		},
-		{
-			title: 'Quyền lợi',
-			items: [
-				'Môi trường làm việc thân thiện, năng động.',
-				'Quà vào các dịp Lễ, Tết (Trung thu, 8/3, 20/10...)',
-				'Chính sách ưu đãi cho nhân viên (sinh nhật, dùng bữa cùng người thân...)',
-				'Du lịch thường niên (tối thiểu 2 ngày 1 đêm).',
-			],
-		},
-	],
-	generalInfo: [
-		{ label: 'Ngày đăng', value: '23/01/2026' },
-		{ label: 'Thời gian thử việc', value: '2 tháng' },
-		{ label: 'Cấp bậc', value: 'Nhân viên' },
-		{ label: 'Số lượng tuyển', value: '2' },
-		{ label: 'Hình thức làm việc', value: 'Toàn thời gian cố định' },
-		{ label: 'Yêu cầu bằng cấp', value: 'Cao đẳng' },
-		{ label: 'Yêu cầu kinh nghiệm', value: '2 năm' },
-		{ label: 'Ngành nghề', value: 'Hành chính - Thư ký / Nhân sự / Kế toán' },
-	],
-	skills: [
-		'Tính lương',
-		'Thuế TNCN',
-		'Chính sách phúc lợi',
-		'Báo cáo nhân sự',
-		'Excel',
-	],
-	keywords: [
-		'chuyên viên lao động tiền lương',
-		'Tiền Lương',
-		'nhân sự tiền lương',
-		'kế toán tiền lương',
-		'việc làm TP.HCM',
-	],
-};
-
-const similarJobs = [
-	{
-		title: 'Thực Tập Sinh Phúc Lợi',
-		company: 'Công Ty TNHH Giải Pháp Tốt - Gft',
-		salary: '2 - 3 triệu',
-		location: 'TP.HCM',
-		daysLeft: 17,
-	},
-	{
-		title: 'Chuyên Viên Nhân Sự Tiền Lương',
-		company: 'Công Ty TNHH Đầu Tư Ntt Việt Nam',
-		salary: '10 - 13 triệu',
-		location: 'TP.HCM',
-		daysLeft: 32,
-	},
-];
 
 // --- Component Chính ---
 const JobDetail: React.FC = () => {
 	const { jobId } = useParams();
+	const navigate = useNavigate();
 	const [jobDetail, setJobDetail] = useState<IJob | null>(null);
+	const [similarJobs, setSimilarJobs] = useState<IJob[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+	const userLocal = localStorage.getItem('user');
+	const user = userLocal ? JSON.parse(userLocal) : null;
+
+	const isAlreadyApplied = jobDetail?.applicationList?.some(
+		(app) => app.candidate?.id === user?.id,
+	);
 
 	useEffect(() => {
-		const getJobDetail = async () => {
+		const fetchDetail = async () => {
+			setLoading(true);
 			try {
-				const response = await JobApiById(jobId!);
-				if (response.code === 1000 && response.result) {
-					setJobDetail(response.result);
+				const res = await JobApiById(jobId!);
+				if (res.code === 1000 && res.result) {
+					setJobDetail(res.result);
+
+					// Fetch similar jobs (same category)
+					const allRes = await JobsApi();
+					if (allRes.code === 1000 && allRes.result) {
+						const filtered = (allRes.result as IJob[])
+							.filter(
+								(j) =>
+									j.category === res.result.category && j.id !== res.result.id,
+							)
+							.slice(0, 3);
+						setSimilarJobs(filtered);
+					}
 				}
 			} catch (error) {
-				console.error('Error fetching jobs:', error);
+				console.error('Error fetching job details:', error);
+			} finally {
+				setLoading(false);
 			}
 		};
-		getJobDetail();
+		fetchDetail();
 	}, [jobId]);
 
 	useEffect(() => {
@@ -136,278 +73,317 @@ const JobDetail: React.FC = () => {
 			behavior: 'smooth',
 		});
 	}, []);
+	if (loading) {
+		return (
+			<div className='min-h-screen flex items-center justify-center'>
+				<div className='animate-pulse text-purple-600 font-semibold'>
+					Đang tải dữ liệu...
+				</div>
+			</div>
+		);
+	}
+
+	if (!jobDetail) {
+		return (
+			<div className='p-20 text-center'>Không tìm thấy thông tin công việc</div>
+		);
+	}
+
 	return (
-		<div className='mt-10'>
+		<div className='bg-gray-50/50 min-h-screen pb-20 mt-5'>
 			<Container>
 				{/* === Header Section === */}
-				<div className='bg-white rounded-lg shadow-xl p-6 mb-6'>
-					<Title level={3} className='!mb-4 text-gray-800'>
-						{jobDetail?.title}
-					</Title>
+				<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6'>
+					<div className='flex gap-6 items-start'>
+						<Avatar
+							shape='square'
+							size={100}
+							src={jobDetail.company?.logoUrl}
+							className='bg-gray-100 text-purple-700 font-bold text-4xl shrink-0 border border-gray-100'
+						>
+							{!jobDetail.company?.logoUrl &&
+								jobDetail.company?.name?.charAt(0)}
+						</Avatar>
+						<div className='flex-1'>
+							<Title
+								level={2}
+								className='mb-2! mt-0! text-gray-800 line-clamp-2'
+							>
+								{jobDetail.title}
+							</Title>
+							<div className='text-lg text-purple-700 font-semibold mb-4'>
+								{jobDetail.company?.name}
+							</div>
 
-					<div className='flex flex-wrap gap-6 mb-6 text-gray-600'>
-						<div className='flex items-center gap-2'>
-							<div className='p-2 bg-purple-50 rounded-full text-purple-600'>
-								<DollarOutlined />
-							</div>
-							<div>
-								<div className='text-xs text-gray-500'>Mức lương</div>
-								<div className='font-semibold text-purple-700'>
-									{jobDetail?.minSalary} - {jobDetail?.maxSalary}
-								</div>
-							</div>
-						</div>
-						<div className='flex items-center gap-2'>
-							<div className='p-2 bg-purple-50 rounded-full text-purple-600'>
-								<EnvironmentOutlined />
-							</div>
-							<div>
-								<div className='text-xs text-gray-500'>Khu vực tuyển</div>
-								<div className='font-semibold text-gray-800'>
-									{jobDetail?.location}
-								</div>
-							</div>
-						</div>
-						<div className='flex items-center gap-2'>
-							<div className='p-2 bg-purple-50 rounded-full text-purple-600'>
-								<ClockCircleOutlined />
-							</div>
-							<div>
-								<div className='text-xs text-gray-500'>Kĩ năng</div>
-								<div className='font-semibold text-gray-800'>
-									{jobDetail?.skills}
-								</div>
+							<div className='flex flex-wrap gap-4 text-gray-600'>
+								<Tag
+									icon={<DollarOutlined />}
+									color='blue'
+									className='px-3 py-1 text-sm border-none bg-blue-50 text-blue-700 font-medium'
+								>
+									{formatSalary(jobDetail.minSalary, jobDetail.maxSalary)}
+								</Tag>
+								<Tag
+									icon={<EnvironmentOutlined />}
+									color='default'
+									className='px-3 py-1 text-sm border-none bg-gray-100'
+								>
+									{jobDetail.location}
+								</Tag>
+								<Tag
+									icon={<ClockCircleOutlined />}
+									color={jobDetail.status === 'OPEN' ? 'success' : 'default'}
+									className={`px-3 py-1 text-sm border-none font-medium ${jobDetail.status === 'OPEN' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+								>
+									{jobDetail.status === 'OPEN'
+										? 'Đang tuyển'
+										: 'Hết hạn hoặc Tạm dừng'}
+								</Tag>
 							</div>
 						</div>
-						<div className='flex items-center gap-2'>
-							<div className='p-2 bg-purple-50 rounded-full text-purple-600'>
-								<TrophyOutlined />
-							</div>
-							<div>
-								<div className='text-xs text-gray-500'>Yêu cầu</div>
-								<div className='font-semibold text-gray-800'>
-									{jobDetail?.requirement}
-								</div>
-							</div>
+						<div className='hidden lg:flex flex-col gap-3 min-w-[200px]'>
+							<Button
+								type='primary'
+								size='large'
+								icon={<SendOutlined />}
+								disabled={isAlreadyApplied}
+								className={`w-full h-12 font-bold ${isAlreadyApplied ? 'bg-gray-400! hover:bg-gray-400!' : 'bg-[#451fa3]! hover:!bg-[#2f0d7b]!'}`}
+								onClick={() => setIsApplyModalOpen(true)}
+							>
+								{isAlreadyApplied ? 'Đã ứng tuyển' : 'Ứng tuyển ngay'}
+							</Button>
+							{/* <Button
+								size='large'
+								icon={<HeartOutlined />}
+								className='w-full text-[#451fa3] border-[#451fa3] h-12 hover:!text-[#2f0d7b] hover:!border-[#2f0d7b]'
+							>
+								Lưu tin
+							</Button> */}
 						</div>
 					</div>
 
-					{/* <div className='flex items-center justify-between bg-orange-50 p-3 rounded mb-6 border border-orange-100'>
-						<span className='text-orange-600 text-sm'>
-							⏳ Hạn nộp hồ sơ: <strong>{jobData.deadline}</strong> • Công việc
-							đang rất được quan tâm! Ứng tuyển ngay để không lỡ cơ hội!
-						</span>
-					</div> */}
-
-					<div className='flex gap-4'>
+					<div className='mt-6 lg:hidden flex gap-3'>
 						<Button
 							type='primary'
+							block
 							size='large'
-							icon={<SendOutlined />}
-							className='flex-1 bg-[#451fa3]! hover:!bg-[#2f0d7b] h-12 font-bold text-lg'
+							disabled={isAlreadyApplied}
+							className={isAlreadyApplied ? 'bg-gray-400!' : 'bg-[#451fa3]!'}
+							onClick={() => setIsApplyModalOpen(true)}
 						>
-							Ứng tuyển ngay
+							{isAlreadyApplied ? 'Đã ứng tuyển' : 'Ứng tuyển'}
 						</Button>
-						<Button
-							size='large'
-							icon={<HeartOutlined />}
-							className='text-[#451fa3] border-[#451fa3] h-12 hover:!text-[#2f0d7b] hover:!border-[#2f0d7b]'
-						>
-							Lưu công việc này
+						<Button block size='large'>
+							Lưu tin
 						</Button>
 					</div>
 				</div>
 
-				{/* === Main Layout: 2 Columns === */}
+				{/* === Main Layout === */}
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-					{/* --- LEFT COLUMN: Content --- */}
+					{/* --- LEFT COLUMN --- */}
 					<div className='lg:col-span-2 space-y-6'>
-						{/* Job Description Block */}
-						<div className='bg-white rounded-lg shadow-sm p-6'>
-							<Title
-								level={4}
-								className='border-l-4 border-purple-600 pl-3 mb-6'
-							>
-								Mô tả công việc
-							</Title>
-
-							{/* Render dynamic sections */}
-							{jobData.sections.map((section, idx) => (
-								<div key={idx} className='mb-6'>
-									{/* Chỉ hiển thị title con nếu có trong data (như phần A, B, C, D) */}
-									{section.title !== 'Mô tả công việc' && (
-										<h3 className='font-bold text-gray-800 mb-2'>
-											{section.title}
-										</h3>
-									)}
-
-									{section.content ? (
-										// Trường hợp có sub-title (A. Tính lương...)
-										section.content.map((sub, sIdx) => (
-											<div key={sIdx} className='mb-4'>
-												<div className='font-semibold text-gray-800'>
-													{sub.subTitle}
-												</div>
-												<ul className='list-disc list-inside text-gray-600 pl-2 space-y-1 mt-1'>
-													{sub.items.map((item, i) => (
-														<li key={i}>{item}</li>
-													))}
-												</ul>
-											</div>
-										))
-									) : (
-										// Trường hợp list thường (Yêu cầu, Quyền lợi)
-										<ul className='list-disc list-inside text-gray-600 pl-2 space-y-1'>
-											{section.items?.map((item, i) => (
-												<li key={i}>{item}</li>
-											))}
-										</ul>
-									)}
-								</div>
-							))}
-						</div>
-
-						{/* General Info Block */}
-						<div className='bg-white rounded-lg shadow-sm p-6'>
-							<Title
-								level={4}
-								className='border-l-4 border-purple-600 pl-3 mb-6'
-							>
-								Thông tin chung
-							</Title>
-							<div className='grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-4'>
-								{jobData.generalInfo.map((info, idx) => (
-									<div key={idx}>
-										<div className='text-gray-500 text-sm mb-1'>
-											{info.label}
-										</div>
-										<div className='font-medium text-gray-800'>
-											{info.value}
-										</div>
-									</div>
-								))}
-							</div>
-						</div>
-
-						{/* Location & Skills Block */}
-						<div className='bg-white rounded-lg shadow-sm p-6'>
-							<div className='mb-6'>
-								<Title level={4} className='mb-4'>
-									Kỹ năng cần thiết
-								</Title>
-								<div className='flex flex-wrap gap-2'>
-									{jobData.skills.map((skill) => (
-										<span
-											key={skill}
-											className='text-gray-700 bg-gray-100 px-3 py-1 rounded text-sm hover:bg-gray-200 cursor-default transition'
-										>
-											{skill}
-										</span>
-									))}
-								</div>
-							</div>
-
-							<Divider />
-
-							<div className='mb-6'>
-								<Title level={4} className='mb-4'>
-									Địa điểm làm việc
-								</Title>
-								<div className='flex items-start gap-2 text-gray-700'>
-									<EnvironmentOutlined className='mt-1 text-purple-600' />
-									<span>{jobData.companyAddress}</span>
-								</div>
-							</div>
-
-							<div className='mb-6'>
+						{/* Job Content */}
+						<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-8'>
+							<section className='mb-10'>
 								<Title
-									level={5}
-									className='mb-3 text-sm text-gray-500 font-normal'
+									level={4}
+									className='!mb-6 flex items-center gap-2 text-gray-800'
 								>
-									Từ khoá
+									<div className='w-1.5 h-6 bg-purple-600 rounded-full'></div>
+									Chi tiết công việc
 								</Title>
-								<div className='flex flex-wrap gap-2'>
-									{jobData.keywords.map((kw) => (
-										<Tag
-											key={kw}
-											className='bg-gray-100 border-none text-gray-600 px-3 py-1 rounded-md m-0'
-										>
-											{kw}
-										</Tag>
-									))}
+								<div
+									className='text-gray-700 leading-relaxed whitespace-pre-line'
+									dangerouslySetInnerHTML={{
+										__html: jobDetail.description || 'Đang cập nhật',
+									}}
+								/>
+							</section>
+
+							<section>
+								<Title
+									level={4}
+									className='mb-6! flex items-center gap-2 text-gray-800'
+								>
+									<div className='w-1.5 h-6 bg-purple-600 rounded-full'></div>
+									Yêu cầu ứng viên
+								</Title>
+								<div className='bg-purple-50/30 p-6 rounded-2xl border border-purple-100/50 relative overflow-hidden'>
+									<div className='absolute left-0 top-0 w-1 h-full bg-purple-600/20'></div>
+									<div
+										className='text-gray-700 leading-relaxed whitespace-pre-line text-[15px]'
+										dangerouslySetInnerHTML={{
+											__html: jobDetail.requirement || 'Đang cập nhật',
+										}}
+									/>
 								</div>
+							</section>
+						</div>
+
+						{/* Skills Tags */}
+						<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-8'>
+							<Title level={4} className='!mb-6'>
+								Kỹ năng & Chuyên môn
+							</Title>
+							<div className='flex flex-wrap gap-3'>
+								{(jobDetail.skills || '')
+									.replace(/[\[\]"]/g, '') // Loại bỏ ngoặc vuông [ ] và dấu ngoặc kép "
+									.split(',')
+									.map((skill, idx) => {
+										const cleanSkill = skill.trim();
+										if (!cleanSkill) return null;
+										return (
+											<div
+												key={idx}
+												className='flex items-center gap-2 px-4 py-2 bg-linear-to-br from-white to-purple-50 border border-purple-100 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-default'
+											>
+												<div className='w-2 h-2 rounded-full bg-purple-500 group-hover:scale-125 transition-transform'></div>
+												<span className='text-sm font-semibold text-gray-700 group-hover:text-purple-700 transition-colors'>
+													{cleanSkill}
+												</span>
+											</div>
+										);
+									}) || <span className='text-gray-400'>Đang cập nhật</span>}
 							</div>
 						</div>
 					</div>
 
-					{/* --- RIGHT COLUMN: Sidebar --- */}
+					{/* --- RIGHT COLUMN --- */}
 					<div className='lg:col-span-1 space-y-6'>
-						{/* Company Info Card */}
-						<div className='bg-white rounded-lg shadow-sm p-6 border-t-4 border-yellow-400'>
-							<div className='flex flex-col items-center text-center mb-4'>
+						{/* Company Card */}
+						<div className='bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden'>
+							<div className='h-2 bg-gradient-to-r from-purple-500 to-blue-500'></div>
+							<div className='p-6 text-center'>
 								<Avatar
 									size={80}
-									className='bg-yellow-400 mb-3 text-2xl font-bold'
+									src={jobDetail.company?.logoUrl}
+									className='mb-4 shadow-md bg-gray-50'
 								>
-									BAOZ
+									{!jobDetail.company?.logoUrl &&
+										jobDetail.company?.name?.charAt(0)}
 								</Avatar>
-								<h3 className='font-bold text-lg text-gray-800'>
-									{jobData.companyName}
+								<h3 className='font-bold text-xl text-gray-800 mb-1 hover:text-purple-700 transition-colors cursor-pointer'>
+									{jobDetail.company?.name}
 								</h3>
 							</div>
-
-							<div className='space-y-3 text-sm text-gray-600'>
-								<div className='flex gap-2'>
-									<EnvironmentOutlined className='text-gray-400 mt-1' />
-									<span>{jobData.companyAddress}</span>
+							<div className='px-6 pb-6 space-y-4'>
+								<div className='flex gap-3 text-sm text-gray-600 border-t border-gray-50 pt-4'>
+									<EnvironmentOutlined className='text-purple-500 mt-1' />
+									<span>
+										{jobDetail.company?.website || 'Hồ Chí Minh, Việt Nam'}
+									</span>
 								</div>
-								<div className='flex gap-2'>
-									<TeamOutlined className='text-gray-400 mt-1' />
-									<span>Quy mô: {jobData.companySize}</span>
+								<div className='flex gap-3 text-sm text-gray-600'>
+									<GlobalOutlined className='text-purple-500 mt-1' />
+									<a
+										href={jobDetail.company?.website}
+										target='_blank'
+										rel='noreferrer'
+										className='text-blue-600 hover:underline'
+									>
+										{jobDetail.company?.website || 'Trang web công ty'}
+									</a>
 								</div>
+								<Button
+									block
+									className='mt-4 h-10 border-purple-200 text-purple-700 hover:bg-purple-50'
+								>
+									Xem trang công ty
+								</Button>
 							</div>
+						</div>
 
-							<div className='mt-4 text-center'>
-								<a href='#' className='text-blue-600 hover:underline'>
-									Xem trang công ty →
-								</a>
+						{/* General Info */}
+						<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-6'>
+							<Title level={4} className='!mb-6'>
+								Thông tin chung
+							</Title>
+							<div className='space-y-5'>
+								<div className='flex items-start gap-4'>
+									<div className='p-2 bg-blue-50 rounded-lg text-blue-600'>
+										<CalendarOutlined />
+									</div>
+									<div>
+										<div className='text-xs text-gray-400 uppercase font-bold tracking-wider'>
+											Ngày đăng
+										</div>
+										<div className='font-medium text-gray-700'>
+											{new Date(jobDetail.createAt).toLocaleDateString()}
+										</div>
+									</div>
+								</div>
+								<div className='flex items-start gap-4'>
+									<div className='p-2 bg-green-50 rounded-lg text-green-600'>
+										<SafetyCertificateOutlined />
+									</div>
+									<div>
+										<div className='text-xs text-gray-400 uppercase font-bold tracking-wider'>
+											Ngành nghề
+										</div>
+										<div className='font-medium text-gray-700'>
+											{jobDetail.category}
+										</div>
+									</div>
+								</div>
+								<div className='flex items-start gap-4'>
+									<div className='p-2 bg-orange-50 rounded-lg text-orange-600'>
+										<TeamOutlined />
+									</div>
+									<div>
+										<div className='text-xs text-gray-400 uppercase font-bold tracking-wider'>
+											Cấp bậc
+										</div>
+										<div className='font-medium text-gray-700'>Nhân viên</div>
+									</div>
+								</div>
 							</div>
 						</div>
 
 						{/* Similar Jobs */}
-						<div className='bg-white rounded-lg shadow-sm p-4'>
-							<h4 className='font-bold text-gray-700 mb-4'>
-								Việc làm tương tự cho bạn
-							</h4>
-							<div className='space-y-4'>
-								{similarJobs.map((job, idx) => (
-									<div
-										key={idx}
-										className='border border-gray-100 rounded p-3 hover:shadow-md transition bg-white cursor-pointer group'
-									>
-										<h5 className='font-semibold text-gray-800 group-hover:text-purple-700 transition line-clamp-2'>
-											{job.title}
-										</h5>
-										<div className='text-gray-500 text-sm mt-1'>
-											{job.company}
+						{similarJobs.length > 0 && (
+							<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-6'>
+								<Title level={4} className='!mb-6'>
+									Việc làm tương tự
+								</Title>
+								<div className='space-y-4'>
+									{similarJobs.map((similar) => (
+										<div
+											key={similar.id}
+											onClick={() => navigate(`/ca/job/${similar.id}`)}
+											className='group cursor-pointer'
+										>
+											<h5 className='font-bold text-gray-800 group-hover:text-purple-700 transition line-clamp-1'>
+												{similar.title}
+											</h5>
+											<div className='text-xs text-gray-500 mt-1 mb-2'>
+												{similar.company?.name}
+											</div>
+											<div className='flex items-center justify-between'>
+												<span className='text-purple-700 font-bold text-xs'>
+													{formatSalary(similar.minSalary, similar.maxSalary)}
+												</span>
+												<span className='text-[10px] text-gray-400 italic'>
+													{similar.location}
+												</span>
+											</div>
+											<Divider className='my-3' />
 										</div>
-										<div className='flex items-center gap-2 mt-2 text-sm'>
-											<span className='text-purple-700 font-medium bg-purple-50 px-2 py-0.5 rounded-full'>
-												{job.salary}
-											</span>
-											<span className='text-gray-400'>•</span>
-											<span className='text-gray-500'>{job.location}</span>
-										</div>
-										<div className='mt-2 text-xs text-gray-400 flex items-center gap-1'>
-											<ClockCircleOutlined /> Còn {job.daysLeft} ngày
-										</div>
-									</div>
-								))}
+									))}
+								</div>
 							</div>
-						</div>
+						)}
 					</div>
 				</div>
 			</Container>
+
+			{jobDetail && (
+				<ApplyModal
+					isOpen={isApplyModalOpen}
+					onClose={() => setIsApplyModalOpen(false)}
+					job={jobDetail}
+				/>
+			)}
 		</div>
 	);
 };

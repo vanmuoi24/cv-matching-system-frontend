@@ -5,6 +5,7 @@ import {
 	ArrowRightOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { formatSalary } from '../../../../shared/utils/formatSalary';
 interface JobCardProps {
 	id: number;
 	title: string;
@@ -57,9 +58,7 @@ const JobCard = ({
 					{/* Salary */}
 					<div className='flex items-center gap-2 text-blue-600 font-medium text-sm'>
 						<DollarCircleOutlined />
-						<span>
-							{minSalary} - {maxSalary} $
-						</span>
+						<span>{formatSalary(minSalary, maxSalary)}</span>
 					</div>
 
 					{/* Location */}

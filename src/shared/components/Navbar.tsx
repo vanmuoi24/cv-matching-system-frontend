@@ -19,7 +19,6 @@ interface INavbarProps {
 }
 
 const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
-
 	let userLocal = localStorage.getItem('user');
 	let user = userLocal ? JSON.parse(userLocal) : null;
 	const [modal, contextHolder] = Modal.useModal();
@@ -93,8 +92,6 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 						>
 							<span className='text-[12px]'>Người tìm việc</span>
 							<br />
-
-							
 						</div>
 					</Link>
 
@@ -140,7 +137,7 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 								<div className='bg-white rounded-2xl shadow-2xl border border-gray-100 w-60 p-2'>
 									{/* Item 1 */}
 									<Link
-										to='/ca/profile/info'
+										to='/ca/profile'
 										className='flex items-center p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-all group'
 									>
 										<UserOutlined className='text-blue-500 text-lg mr-3' />
@@ -167,7 +164,7 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 
 									{/* Item 5 */}
 									<Link
-										to='/ca/profile/account'
+										to='/ca/profile'
 										className='flex items-center p-3 hover:bg-blue-50 rounded-xl cursor-pointer transition-all'
 									>
 										<SettingOutlined className='text-blue-500 text-lg mr-3' />
@@ -225,6 +222,5 @@ const Navbar = ({ navItems, isRecruiter }: INavbarProps) => {
 		</header>
 	);
 };
-
 
 export default Navbar;

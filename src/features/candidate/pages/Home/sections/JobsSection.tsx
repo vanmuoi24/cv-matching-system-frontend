@@ -1,66 +1,57 @@
-import { Pagination, Select, type SelectProps } from 'antd';
+import { Pagination, Select, type SelectProps, Empty } from 'antd';
 import fireIcon from '../../../../../assets/icons/fireIcon.png';
 import Container from '../../../../../shared/components/Container';
 import { Funnel } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import FilterScrollMenu from '../../../components/FilterScrollMenu/FilterScrollMenu';
 import JobCard from '../../../components/Card/JobCard';
 import { JobsApi } from '../../../../../service/Api/Job/Job';
 import { type IJob } from '../../../../../types/TypeJob';
 
-const dataScrollMenu = {
-	place: [
-		'Tất cả',
-		'Hồ Chí Minh',
-		'Hà Nội',
-		'Đà Nẵng',
-		'Cần Thơ',
-		'Bình Dương',
-		'Đồng Nai',
-		'Bà Rịa - Vũng Tàu',
-	],
-	salary: [
-		'Tất cả',
-		'Dưới 1 triệu',
-		'1-10 triệu',
-		'10-15 triệu',
-		'15-20 triệu',
-		'Trên 25 triệu',
-	],
-	experience: [
-		'Tất cả',
-		'Dưới 1 năm',
-		'1-2 năm',
-		'2-3 năm',
-		'3-5 năm',
-		'5-10 năm',
-		'Trên 10 năm',
-	],
-	profession: [
-		'Tất cả',
-		'IT',
-		'Kinh doanh',
-		'Y tế',
-		'Giáo dục',
-		'Y tế',
-		'Giáo dục',
-	],
-};
-
 const JobSection = () => {
 	const [filterValue, setFilterValue] = useState<
-		'place' | 'profession' | 'experience' | 'salary'
+		'place' | 'profession' | 'salary'
 	>('place');
 
 	const [jobs, setJobs] = useState<IJob[]>([]);
 	const [activeTab, setActiveTab] = useState('Tất cả');
+	const [dynamicOptions, setDynamicOptions] = useState<
+		Record<string, string[]>
+	>({
+		place: ['Tất cả'],
+		profession: ['Tất cả'],
+		salary: [
+			'Tất cả',
+			'Dưới 500$',
+			'500-1,000$',
+			'1,000-2,000$',
+			'Trên 2,000$',
+		],
+	});
 
 	useEffect(() => {
 		const getJobs = async () => {
 			try {
 				const response = await JobsApi();
 				if (response.code === 1000 && response.result) {
-					setJobs(response.result);
+					const data: IJob[] = response.result;
+					setJobs(data);
+
+					// Dynamic options
+					const places = [
+						'Tất cả',
+						...new Set(data.map((j) => j.location).filter(Boolean)),
+					] as string[];
+					const professions = [
+						'Tất cả',
+						...new Set(data.map((j) => j.category).filter(Boolean)),
+					] as string[];
+
+					setDynamicOptions((prev) => ({
+						...prev,
+						place: places,
+						profession: professions,
+					}));
 				}
 			} catch (error) {
 				console.error('Error fetching jobs:', error);
@@ -71,7 +62,7 @@ const JobSection = () => {
 
 	const handleSelectChange = (value: string) => {
 		setActiveTab('Tất cả');
-		setFilterValue(value as 'place' | 'profession' | 'experience' | 'salary');
+		setFilterValue(value as 'place' | 'profession' | 'salary');
 		handleFilter(value, 'Tất cả');
 	};
 
@@ -82,7 +73,6 @@ const JobSection = () => {
 
 	const handleFilter = (value: string, tab: string) => {
 		console.log('loc theo ', value, tab);
-		
 	};
 
 	const sProps: SelectProps = {
@@ -94,10 +84,6 @@ const JobSection = () => {
 			{
 				value: 'profession',
 				label: <span className='font-semibold!'>Lĩnh vực</span>,
-			},
-			{
-				value: 'experience',
-				label: <span className='font-semibold!'>Kinh nghiệm</span>,
 			},
 			{
 				value: 'salary',
@@ -112,10 +98,29 @@ const JobSection = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 9; // 3x3 = 9 item mỗi trang
 
-	// 2. Logic tính toán slice dữ liệu
+	// Logic tính toán slice dữ liệu
+	const filteredJobs = useMemo(() => {
+		if (activeTab === 'Tất cả') return jobs;
+
+		return jobs.filter((job) => {
+			if (filterValue === 'place') return job.location === activeTab;
+			if (filterValue === 'profession') return job.category === activeTab;
+			if (filterValue === 'salary') {
+				// USD filtering
+				const minVal = job.minSalary;
+				if (activeTab === 'Dưới 500$') return minVal < 500;
+				if (activeTab === '500-1,000$') return minVal >= 500 && minVal <= 1000;
+				if (activeTab === '1,000-2,000$')
+					return minVal >= 1000 && minVal <= 2000;
+				if (activeTab === 'Trên 2,000$') return minVal > 2000;
+			}
+			return true;
+		});
+	}, [jobs, activeTab, filterValue]);
+
 	const startIndex = (currentPage - 1) * pageSize;
 	const endIndex = startIndex + pageSize;
-	const currentJobs = jobs.slice(startIndex, endIndex);
+	const currentJobs = filteredJobs.slice(startIndex, endIndex);
 
 	// 3. Hàm xử lý khi đổi trang
 	const handlePageChange = (page: number) => {
@@ -147,7 +152,7 @@ const JobSection = () => {
 
 						<div className='w-[750px] flex justify-end'>
 							<FilterScrollMenu
-								data={dataScrollMenu[filterValue]}
+								data={dynamicOptions[filterValue]}
 								theme='#FF5722'
 								activeTab={activeTab}
 								onChangeFilter={handleChangeFilter}
@@ -155,24 +160,37 @@ const JobSection = () => {
 						</div>
 					</div>
 					<div className='min-h-[520px] mb-8'>
-						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 '>
-							{currentJobs.map((job) => (
-								<JobCard
-									key={job.id}
-									id={+job.id}
-									title={job.title}
-									category={job.category}
-									minSalary={+job.minSalary}
-									maxSalary={+job.maxSalary}
-									location={job.location}
+						{currentJobs.length > 0 ? (
+							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 '>
+								{currentJobs.map((job) => (
+									<JobCard
+										key={job.id}
+										id={+job.id}
+										title={job.title}
+										category={job.category}
+										minSalary={+job.minSalary}
+										maxSalary={+job.maxSalary}
+										location={job.location}
+									/>
+								))}
+							</div>
+						) : (
+							<div className='flex flex-col items-center justify-center h-[500px] bg-gray-50/50 rounded-xl border border-dashed border-gray-200'>
+								<Empty
+									description={
+										<div className='text-gray-500'>
+											<p className='text-lg font-semibold'>Không tìm thấy việc làm phù hợp</p>
+											<p>Vui lòng thử lại với các tiêu chí khác hoặc xoá bớt bộ lọc</p>
+										</div>
+									}
 								/>
-							))}
-						</div>
+							</div>
+						)}
 					</div>
 					<div className='flex justify-center'>
 						<Pagination
 							current={currentPage}
-							total={jobs.length}
+							total={filteredJobs.length}
 							pageSize={pageSize}
 							onChange={handlePageChange}
 							showSizeChanger={false} // Tắt thay đổi số lượng item/page nếu muốn cố định 3x3

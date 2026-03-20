@@ -16,7 +16,7 @@ function CandidateLayout() {
 	return (
 		<>
 			<Header navItems={navItems} isRecruiter={false} />
-			<main className='min-h-[80vh] pt-[112px] md:pt-[120px]'>
+			<main className='min-h-[80vh] pt-[100px]'>
 				<Outlet />
 			</main>
 			<Footer />

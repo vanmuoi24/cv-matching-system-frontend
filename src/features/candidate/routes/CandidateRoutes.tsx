@@ -7,9 +7,6 @@ import JobList from '../pages/Job/JobList/page';
 import JobDetail from '../pages/Job/JobDetail/page';
 import ProfilePage from '../pages/Profile/ProfilePage';
 
-import ProfileLayout from '../pages/Profile/layout';
-import Account from '../pages/Profile/Account/page';
-import Info from '../pages/Profile/Info/page';
 const CandidateRoutes = () => {
 	return (
 		<Routes>
@@ -22,10 +19,6 @@ const CandidateRoutes = () => {
 				<Route path='/tool' element={<Tool />} />
 				<Route path='/blog' element={<Blog />} />
 				<Route path='/profile' element={<ProfilePage />} />
-				<Route path='/profile' element={<ProfileLayout />}>
-					<Route index path='info' element={<Info />} />
-					<Route path='account' element={<Account />} />
-				</Route>
 			</Route>
 		</Routes>
 	);

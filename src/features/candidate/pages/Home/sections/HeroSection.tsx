@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { JobsApi } from '../../../../../service/Api/Job/Job';
+import type { IJob } from '../../../../../types/TypeJob';
 import {
+	AutoComplete,
 	Button,
 	Input,
 	Select,
@@ -7,51 +10,85 @@ import {
 	type SelectProps,
 	type TreeSelectProps,
 } from 'antd';
+import useDebounce from '../../../../../shared/hooks/useDebounce';
 
 import searchIcon from '../../../../../assets/icons/searchIcon.png';
 import fileRemoveIcon from '../../../../../assets/icons/fileRemoveIcon.png';
 import thunderIcon from '../../../../../assets/icons/thunderIcon.png';
 import googleIcon from '../../../../../assets/icons/googleIcon.png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Container from '../../../../../shared/components/Container';
 
 const { SHOW_PARENT } = TreeSelect;
 
-const professionData = [
-	{
-		title: 'IT - Phần mềm',
-		value: '0',
-		key: '0',
-	},
-	{
-		title: 'IT - Phần cứng',
-		value: '1',
-		key: '1',
-	},
-	{
-		title: 'Khách sạn - Nhà hàng - Du lịch',
-		value: '2',
-		key: '2',
-	},
-];
-const placeData = [
-	{
-		label: 'Hà Nội',
-		value: 'Hà Nội',
-	},
-	{
-		label: 'Hồ Chí Minh',
-		value: 'Hồ Chí Minh',
-	},
-	{
-		label: 'Đà Nẵng',
-		value: 'Đà Nẵng',
-	},
-];
-
 const HeroSection = () => {
+	const navigate = useNavigate();
 	const [professions, setProfessions] = useState<string[]>([]);
-	const [place, setPlace] = useState<string>('');
+	const [place, setPlace] = useState<string | undefined>(undefined);
+	const [professionOptions, setProfessionOptions] = useState<
+		TreeSelectProps['treeData']
+	>([]);
+	const [placeOptions, setPlaceOptions] = useState<
+		{ label: string; value: string }[]
+	>([]);
+	const [allJobs, setAllJobs] = useState<IJob[]>([]);
+	const [jobTitleValue, setJobTitleValue] = useState<string>('');
+	const debouncedJobTitle = useDebounce(jobTitleValue, 500);
+
+	useEffect(() => {
+		const fetchJobs = async () => {
+			try {
+				const response = await JobsApi();
+				console.log('Jobs API response:', response);
+				if (response.result) {
+					const jobs: IJob[] = response.result;
+					setAllJobs(jobs);
+
+					// Extract unique categories
+					const uniqueCategories = [
+						...new Set(jobs.map((job) => job.category).filter(Boolean)),
+					];
+					const categoryOptions = uniqueCategories.map((cat) => ({
+						title: cat,
+						value: cat,
+						key: cat,
+					}));
+					setProfessionOptions(categoryOptions);
+
+					// Extract unique locations
+					const uniqueLocations = [
+						...new Set(jobs.map((job) => job.location).filter(Boolean)),
+					];
+					const locationOptions = uniqueLocations.map((loc) => ({
+						label: loc!,
+						value: loc!,
+					}));
+					setPlaceOptions(locationOptions);
+				}
+			} catch (error) {
+				console.error('Error fetching jobs:', error);
+			}
+		};
+
+		fetchJobs();
+	}, []);
+
+	const jobTitleOptions = useMemo(() => {
+		if (debouncedJobTitle) {
+			const suggestions = allJobs
+				.filter((job) =>
+					job.title.toLowerCase().includes(debouncedJobTitle.toLowerCase()),
+				)
+				.map((job) => ({ value: job.title }));
+			// Remove duplicates
+			const uniqueSuggestions = Array.from(
+				new Set(suggestions.map((s) => s.value)),
+			).map((value) => ({ value }));
+			return uniqueSuggestions;
+		}
+		return [];
+	}, [debouncedJobTitle, allJobs]);
+
 	const onChangeProfessions = (newValue: string[]) => {
 		console.log('onChange ', newValue);
 		setProfessions(newValue);
@@ -65,12 +102,13 @@ const HeroSection = () => {
 		console.log('onSearchPlace ', value);
 	};
 	const tProps: TreeSelectProps = {
-		treeData: professionData,
+		treeData: professionOptions,
 		value: professions,
 		onChange: onChangeProfessions,
 		treeCheckable: true,
 		showCheckedStrategy: SHOW_PARENT,
 		placeholder: 'Chọn ngành nghề',
+		allowClear: true,
 		style: {
 			width: '100%',
 		},
@@ -81,10 +119,22 @@ const HeroSection = () => {
 		onSearch: onSearchPlace,
 		placeholder: 'Chọn địa điểm làm việc',
 		onChange: onChangePlace,
-		options: placeData,
+		value: place,
+		allowClear: true,
+		options: placeOptions,
 		style: {
 			width: '100%',
 		},
+	};
+	const handleSearch = () => {
+		const queryParams = new URLSearchParams();
+		if (jobTitleValue) queryParams.set('title', jobTitleValue);
+		if (place) queryParams.set('location', place);
+		if (professions && professions.length > 0) {
+			queryParams.set('categories', professions.join(','));
+		}
+
+		navigate(`/ca/job?${queryParams.toString()}`);
 	};
 
 	return (
@@ -103,12 +153,22 @@ const HeroSection = () => {
 						<span className='block w-full h-px bg-gray-300 my-3'></span>
 						<div className=' flex items-center shadow-lg p-2 py-3 rounded-[48px] bg-white border border-gray-200 cursor-pointer h-[65px]'>
 							<div className='flex-2 '>
-								<Input
-									className='text-[14px]! font-medium border-none!'
-									placeholder='Nhập vị trí bạn muốn ứng tuyển'
-									prefix={<img className='w-4 mr-2' src={searchIcon} alt='' />}
-									bordered={false}
-								/>
+								<AutoComplete
+									options={jobTitleOptions}
+									value={jobTitleValue}
+									onChange={(value) => setJobTitleValue(value)}
+									style={{ width: '100%' }}
+									className='text-[14px]! font-medium custom-autocomplete'
+								>
+									<Input
+										className='text-[14px]! font-medium border-none!'
+										placeholder='Nhập vị trí bạn muốn ứng tuyển'
+										prefix={
+											<img className='w-4 mr-2' src={searchIcon} alt='' />
+										}
+										bordered={false}
+									/>
+								</AutoComplete>
 							</div>
 							<div className='flex-2  border-l border-r border-gray-200'>
 								<TreeSelect
@@ -127,6 +187,7 @@ const HeroSection = () => {
 							<div className='flex-1 h-full'>
 								<Button
 									type='primary'
+									onClick={handleSearch}
 									className='rounded-3xl! cursor-pointer hover:bg-[#260b70]! text-[14px]! font-semibold! bg-[#451fa3]! w-full! h-full!'
 								>
 									Tìm kiếm
