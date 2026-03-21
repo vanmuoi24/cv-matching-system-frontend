@@ -204,6 +204,9 @@ const JobPostingManagement = () => {
   };
 
   const handleDelete = async (data: IJob) => {
+    const ok = window.confirm("Bạn có chắc muốn xóa không?");
+    if (!ok) return;
+
     const res = await DeleteJob(data.id);
     if (res.code === 1000) {
       toast.success("Xóa tin tuyển dụng thành công");
