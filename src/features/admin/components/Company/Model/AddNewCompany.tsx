@@ -28,22 +28,20 @@ const AddNewCompany: React.FC<IAddNewCompanyProps> = ({
   const handleSubmit = async (values: any) => {
     try {
       setLoading(true);
-      const formData = new FormData();
-      
-      formData.append('name', values.name);
-      formData.append('description', values.description);
-      formData.append('website', values.website);
-      formData.append('status', values.status || 'ACTIVE');
-      
+      const submitData: any = {
+        name: values.name,
+        description: values.description,
+        website: values.website,
+        status: values.status || 'ACTIVE',
+      };
+
       if (logoFile) {
-        formData.append('logo', logoFile.originFileObj);
+        submitData.logo = logoFile.originFileObj || logoFile;
       }
 
-      await onSubmit(formData as any);
-      
+      await onSubmit(submitData);
+
       message.success('Thêm công ty thành công!');
-      form.resetFields();
-      setLogoFile(null);
       onClose();
     } catch (error: any) {
       message.error(error.message || 'Có lỗi xảy ra');
@@ -127,6 +125,7 @@ const AddNewCompany: React.FC<IAddNewCompanyProps> = ({
             maxCount={1}
             accept="image/*"
             onChange={handleUploadChange}
+            beforeUpload={() => false}
             listType="picture"
           >
             <Button icon={<UploadOutlined />}>

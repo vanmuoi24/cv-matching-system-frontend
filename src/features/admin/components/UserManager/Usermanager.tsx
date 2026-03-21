@@ -11,7 +11,7 @@ import {
 import type { IUser } from "../../../../types/TypeUser";
 import { GetListUser, CreateUser, UpdateUser, DeleteUser } from "../../../../service/Api/User/UserAPI";
 import { AddNewUser, EditUser } from "./Model";
-import { message, Modal } from "antd";
+import { message, Popconfirm } from "antd";
 
 const UserManager = () => {
   const actionRef = useRef<any>(null);
@@ -63,24 +63,18 @@ const UserManager = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: 'Xác nhận xóa',
-      content: 'Bạn có chắc chắn muốn xóa người dùng này không?',
-      onOk: async () => {
-        try {
-          const res = await DeleteUser(id);
-          if (res && res.code === 1000) {
-            message.success("Xóa người dùng thành công");
-            await fetchData();
-          } else {
-            message.error(res.message || "Xóa người dùng thất bại");
-          }
-        } catch (error) {
-          message.error("Có lỗi xảy ra khi xóa");
-        }
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await DeleteUser(id);
+      if (res && res.code === 1000) {
+        message.success("Xóa người dùng thành công");
+        await fetchData();
+      } else {
+        message.error(res.message || "Xóa người dùng thất bại");
       }
-    });
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi xóa");
+    }
   };
 
   const handleEditClick = (record: IUser) => {
@@ -112,11 +106,15 @@ const UserManager = () => {
       title: "Vai trò",
       dataIndex: "role",
       width: 140,
-      render: (role: string) => (
-        <Tag color={role === "ADMIN" ? "blue" : "default"}>
-          {role === "ADMIN" ? "Quản trị viên" : "Người dùng"}
-        </Tag>
-      ),
+      render: (role: string) => {
+        const roleMap: any = {
+          ADMIN: { color: "blue", label: "Quản trị viên" },
+          RECRUITER: { color: "orange", label: "Nhà tuyển dụng" },
+          CANDIDATE: { color: "green", label: "Ứng viên" },
+        };
+        const config = roleMap[role] || { color: "default", label: role };
+        return <Tag color={config.color}>{config.label}</Tag>;
+      },
     },
     {
       title: "Trạng thái",
@@ -141,9 +139,18 @@ const UserManager = () => {
           <Button type="link" icon={<EditOutlined />} size="small" onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
-          <Button type="link" danger icon={<DeleteOutlined />} size="small" onClick={() => handleDelete(record.id)}>
-            Xóa
-          </Button>
+          <Popconfirm
+            title="Xác nhận xóa"
+            description="Bạn có chắc chắn muốn xóa người dùng này không?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <Button type="link" danger icon={<DeleteOutlined />} size="small">
+              Xóa
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Space, Input, Avatar } from "antd";
 import {
@@ -12,7 +12,7 @@ import { GetListCompany, CreateCompany, UpdateCompany, DeleteCompany } from "../
 import type { ICompany } from "../../../../types/TypeCompany";
 import AddNewCompany from "./Model/AddNewCompany";
 import EditCompany from "./Model/EditCompany";
-import { message, Modal } from "antd";
+import { message, Popconfirm } from "antd";
 
 const Company = () => {
   const actionRef = useRef(null);
@@ -31,7 +31,21 @@ const Company = () => {
 
   const handleAddSubmit = async (data: any) => {
     try {
-      const res = await CreateCompany(data);
+      const formData = new FormData();
+      Object.keys(data).forEach((key) => {
+        if (key === 'logo') {
+          formData.append('logo', data[key]);
+        } else {
+          formData.append(key, data[key]);
+        }
+      });
+
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user?.id) {
+        formData.append('ownerId', user.id);
+      }
+
+      const res = await CreateCompany(formData);
       if (res && res.code === 1000) {
         await fechdataCompany();
         setAddModalVisible(false);
@@ -49,10 +63,10 @@ const Company = () => {
 
     try {
       const formData = new FormData();
-      Object.keys(data).forEach(key => {
-        if (key === 'logoUrl' && data[key] instanceof File) {
+      Object.keys(data).forEach((key) => {
+        if (key === 'logo') {
           formData.append('logo', data[key]);
-        } else if (data[key] !== undefined && key !== 'logoUrl') {
+        } else {
           formData.append(key, data[key]);
         }
       });
@@ -71,24 +85,18 @@ const Company = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: 'Xác nhận xóa',
-      content: 'Bạn có chắc chắn muốn xóa công ty này không?',
-      onOk: async () => {
-        try {
-          const res = await DeleteCompany(id);
-          if (res && res.code === 1000) {
-            message.success("Xóa công ty thành công");
-            await fechdataCompany();
-          } else {
-            message.error(res.message || "Xóa công ty thất bại");
-          }
-        } catch (error) {
-          message.error("Có lỗi xảy ra khi xóa");
-        }
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await DeleteCompany(id);
+      if (res && res.code === 1000) {
+        message.success("Xóa công ty thành công");
+        await fechdataCompany();
+      } else {
+        message.error(res.message || "Xóa công ty thất bại");
       }
-    });
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi xóa");
+    }
   };
 
   const handleEditClick = (record: ICompany) => {
@@ -107,7 +115,7 @@ const Company = () => {
       width: 260,
       render: (_: any, record: any) => (
         <Space>
-          <Avatar src={record.logo_url} icon={<BankOutlined />} />
+          <Avatar src={record.logoUrl || record.logo_url} icon={<BankOutlined />} />
           <div>
             <div style={{ fontWeight: 600 }}>{record.name}</div>
             <a
@@ -153,9 +161,18 @@ const Company = () => {
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
-          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
-            Xóa
-          </Button>
+          <Popconfirm
+            title="Xác nhận xóa"
+            description="Bạn có chắc chắn muốn xóa công ty này không?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <Button type="link" danger icon={<DeleteOutlined />}>
+              Xóa
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },

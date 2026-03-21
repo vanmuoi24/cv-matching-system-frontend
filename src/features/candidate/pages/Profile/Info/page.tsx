@@ -13,6 +13,21 @@ import {
 import InfoModal from "../Modal/InfoModal";
 import { useRef, useState } from "react";
 import instance from "C:/Study/Java/DACN-SmartCV/cv-matching-system-frontend/src/service/Axios/Axios.ts";
+	User,
+	PenTool,
+	Mail,
+	Heart,
+	Upload,
+	MapPin,
+	Clock,
+	DollarSign,
+	Briefcase,
+	Code,
+} from 'lucide-react';
+import InfoModal from '../Modal/InfoModal';
+import { useRef, useState } from 'react';
+import instance from '../../../../../service/Axios/Axios';
+import type { AxiosProgressEvent } from 'axios';
 
 // Mock data based on User and CandidateProfile entities
 const mockUserData = {
