@@ -84,7 +84,7 @@ const Info = () => {
 			});
 
 			// instance interceptor returns response.data; assume it contains file url
-			const uploadedUrl = res?.data?.cvFileUrl ?? res?.cvFileUrl ?? null;
+			const uploadedUrl = res?.data?.cvFileUrl ?? res ?? null;
 			setUploadedFileName(file.name);
 			if (uploadedUrl) {
 				// optionally update local mock or state
