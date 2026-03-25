@@ -64,7 +64,6 @@ const JobForm = ({ open, onClose, onSubmit, initialData }: JobFormProps) => {
     };
 
     onSubmit(submitData);
-    console.log("Submit data:", submitData); // --- IGNORE ---
   };
 
   return (

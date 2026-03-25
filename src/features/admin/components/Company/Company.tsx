@@ -12,7 +12,7 @@ import { GetListCompany, CreateCompany, UpdateCompany, DeleteCompany } from "../
 import type { ICompany } from "../../../../types/TypeCompany";
 import AddNewCompany from "./Model/AddNewCompany";
 import EditCompany from "./Model/EditCompany";
-import { message, Modal } from "antd";
+import { message, Popconfirm } from "antd";
 
 const Company = () => {
   const actionRef = useRef(null);
@@ -85,24 +85,18 @@ const Company = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: 'Xác nhận xóa',
-      content: 'Bạn có chắc chắn muốn xóa công ty này không?',
-      onOk: async () => {
-        try {
-          const res = await DeleteCompany(id);
-          if (res && res.code === 1000) {
-            message.success("Xóa công ty thành công");
-            await fechdataCompany();
-          } else {
-            message.error(res.message || "Xóa công ty thất bại");
-          }
-        } catch (error) {
-          message.error("Có lỗi xảy ra khi xóa");
-        }
+  const handleDelete = async (id: number) => {
+    try {
+      const res = await DeleteCompany(id);
+      if (res && res.code === 1000) {
+        message.success("Xóa công ty thành công");
+        await fechdataCompany();
+      } else {
+        message.error(res.message || "Xóa công ty thất bại");
       }
-    });
+    } catch (error) {
+      message.error("Có lỗi xảy ra khi xóa");
+    }
   };
 
   const handleEditClick = (record: ICompany) => {
@@ -167,9 +161,18 @@ const Company = () => {
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEditClick(record)}>
             Sửa
           </Button>
-          <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>
-            Xóa
-          </Button>
+          <Popconfirm
+            title="Xác nhận xóa"
+            description="Bạn có chắc chắn muốn xóa công ty này không?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+          >
+            <Button type="link" danger icon={<DeleteOutlined />}>
+              Xóa
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },

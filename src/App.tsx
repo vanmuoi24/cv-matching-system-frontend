@@ -1,9 +1,11 @@
 import AppRoutes from "./routes/AppRoutes";
-import { Bounce, ToastContainer, toast } from "react-toastify";
+import { Bounce, ToastContainer } from "react-toastify";
+
+import { App as AntApp } from "antd";
 
 function App() {
   return (
-    <>
+    <AntApp>
       <AppRoutes />
       <ToastContainer
         position="top-right"
@@ -18,7 +20,7 @@ function App() {
         theme="light"
         transition={Bounce}
       />
-    </>
+    </AntApp>
   );
 }
 

@@ -1,21 +1,21 @@
-import Axios from '../../Axios/Axios';
+import type { IApplication } from '../../../types/TypeApplication';
+import instance from '../../Axios/Axios.ts';
+import type { AxiosResponse } from '../../../types/ResponseAPI.ts';
 
-export interface ApplicationCreateRequest {
-	candidateId: number;
-	jobId: number;
-	similarityScore?: number;
-	status: string;
-	appliedAt: string;
-}
-
-export const CreateApplication = async (
-	data: ApplicationCreateRequest,
-): Promise<any> => {
-	return Axios.post('/applications', data);
+const CreateApplication = (data: IApplication): Promise<AxiosResponse> => {
+	return instance.post('/applications', data);
 };
 
-export const GetApplicationsByCandidateId = async (
+const UpdateApplication = (
+	applicationId: number,
+	data: Partial<IApplication>,
+): Promise<AxiosResponse> => {
+	return instance.post(`/applications/update/${applicationId}`, data);
+};
+
+const GetApplicationsByCandidateId = async (
 	candidateId: number,
-): Promise<any> => {
-	return Axios.get(`/applications/candidate/${candidateId}`);
+): Promise<AxiosResponse> => {
+	return instance.get(`/applications/candidate/${candidateId}`);
 };
+export { CreateApplication, UpdateApplication, GetApplicationsByCandidateId };

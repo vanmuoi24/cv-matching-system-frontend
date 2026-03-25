@@ -8,7 +8,6 @@ import {
   Space,
   Avatar,
   Typography,
-  message,
   Input,
   Select,
 } from "antd";
@@ -20,6 +19,8 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import type { IApplication } from "../../../../../types/TypeApplication";
+import { UpdateApplication } from "@/service/Api/Application/Application";
+import { toast } from "react-toastify";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -51,7 +52,6 @@ const ListResume: React.FC<ListResumeProps> = ({
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [loadingId, setLoadingId] = useState<number | null>(null);
-
   // ================= MAP DATA =================
   const data: Resume[] =
     listResume?.map((app) => ({
@@ -69,16 +69,24 @@ const ListResume: React.FC<ListResumeProps> = ({
   }, [data, filterStatus]);
 
   // ================= APPROVE =================
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (application: IApplication) => {
     try {
-      setLoadingId(id);
+      setLoadingId(application.id);
 
       // CALL API APPROVE
       // await axios.put(`/api/application/${id}/approve`);
-
-      message.success("Đã phê duyệt ứng viên");
+      application.status = "HIRED";
+      const res = await UpdateApplication(application.id, application);
+      if (res.code === 1000 && res.result) {
+        toast.success("Đã phê duyệt ứng viên");
+        listResume?.forEach((app) => {
+          if (app.id === application.id) {
+            app.status = "HIRED";
+          }
+        });
+      }
     } catch {
-      message.error("Xử lý thất bại");
+      toast.error("Xử lý thất bại");
     } finally {
       setLoadingId(null);
     }
@@ -87,7 +95,7 @@ const ListResume: React.FC<ListResumeProps> = ({
   // ================= REJECT =================
   const handleReject = async () => {
     if (!rejectReason.trim()) {
-      message.warning("Vui lòng nhập lý do từ chối");
+      toast.error("Vui lòng nhập lý do từ chối");
       return;
     }
 
@@ -101,11 +109,19 @@ const ListResume: React.FC<ListResumeProps> = ({
       //   reason: rejectReason,
       // });
 
-      message.success("Đã từ chối ứng viên");
-      setRejectModal(false);
-      setRejectReason("");
+      const res = await UpdateApplication(selectedId, { status: "REJECTED" });
+      if (res.code === 1000 && res.result) {
+        toast.success("Đã từ chối ứng viên");
+        setRejectModal(false);
+        setRejectReason("");
+        listResume?.forEach((app) => {
+          if (app.id === selectedId) {
+            app.status = "REJECTED";
+          }
+        });
+      }
     } catch {
-      message.error("Xử lý thất bại");
+      toast.error("Xử lý thất bại");
     } finally {
       setLoadingId(null);
     }
@@ -137,8 +153,8 @@ const ListResume: React.FC<ListResumeProps> = ({
           status === "PENDING"
             ? "blue"
             : status === "APPROVED"
-            ? "green"
-            : "red";
+              ? "green"
+              : "red";
 
         return <Tag color={color}>{status}</Tag>;
       },
@@ -151,14 +167,28 @@ const ListResume: React.FC<ListResumeProps> = ({
           <Button
             type="text"
             icon={<EyeOutlined />}
-            onClick={() =>
-              navigate(`/admin/cv/${r.id}`, { state: { pdfUrl: r.pdfUrl } })
-            }
+            // onClick={() =>
+            //   navigate(`/admin/cv/${r.id}`, { state: { pdfUrl: r.pdfUrl } })
+            // }
+            onClick={() => window.open(r.pdfUrl, "_blank")}
           />
           <Button
             type="text"
             icon={<DownloadOutlined />}
-            onClick={() => window.open(r.pdfUrl)}
+            // onClick={() => window.open(r.pdfUrl)}
+            onClick={async () => {
+              const res = await fetch(r.pdfUrl);
+              const blob = await res.blob();
+
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement("a");
+
+              link.href = url;
+              link.download = "cv.pdf";
+              link.click();
+
+              window.URL.revokeObjectURL(url);
+            }}
           />
         </Space>
       ),
@@ -172,7 +202,7 @@ const ListResume: React.FC<ListResumeProps> = ({
             <Button
               type="primary"
               loading={loadingId === r.id}
-              onClick={() => handleApprove(r.id)}
+              onClick={() => handleApprove(r)}
             >
               Phê duyệt
             </Button>
