@@ -9,7 +9,8 @@ import {
   ThunderboltFilled,
 } from "@ant-design/icons";
 import { message } from "antd";
-import HistoryJob from "./Historyjob";
+import HistoryJob from "./HistoryJob";
+import ChangePassword from "./ChangePassword";
 
 interface ProfileMainProps {
   activeMenu: string;
@@ -234,12 +235,7 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
       case "account":
         return (
           <div className="bg-white rounded-2xl p-8 shadow-md">
-            <h2 className="text-2xl font-bold mb-6">
-              Quản lý tài khoản
-            </h2>
-            <p className="text-gray-600">
-              Nội dung này sẽ được cập nhật sau
-            </p>
+            <ChangePassword />
           </div>
         );
 

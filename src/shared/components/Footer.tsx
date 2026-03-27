@@ -41,37 +41,37 @@ const Footer = () => {
 							<h4 className='font-bold text-lg mb-4'>Thông tin</h4>
 							<ul className='space-y-2'>
 								<li>
-									<a href='#' className='hover:text-gray-300'>
+									<a href='#' className='text-white! hover:text-gray-300'>
 										Cẩm nang nghề nghiệp
 									</a>
 								</li>
 								<li>
-									<a href='#' className='hover:text-gray-300'>
+									<a href='#' className='text-white! hover:text-gray-300'>
 										Báo giá dịch vụ
 									</a>
 								</li>
 								<li>
-									<a href='#' className='hover:text-gray-300'>
+									<a href='#' className='text-white! hover:text-gray-300'>
 										Điều khoản sử dụng
 									</a>
 								</li>
 								<li>
-									<a href='#' className='hover:text-gray-300'>
+									<a href='#' className='text-white! hover:text-gray-300'>
 										Quy định bảo mật
 									</a>
 								</li>
 								<li>
-									<a href='#' className='hover:text-gray-300'>
+									<a href='#' className='text-white! hover:text-gray-300'>
 										Sơ đồ trang web
 									</a>
 								</li>
 								<li>
-									<a href='#' className='hover:text-gray-300'>
+									<a href='#' className='text-white! hover:text-gray-300'>
 										Chính sách dữ liệu cá nhân
 									</a>
 								</li>
 								<li>
-									<a href='#' className='hover:text-gray-300'>
+									<a href='#' className='text-white! hover:text-gray-300'>
 										Tuân thủ và sự đồng ý của Khách Hàng
 									</a>
 								</li>
@@ -90,26 +90,26 @@ const Footer = () => {
 										{/* Các icon MXH */}
 										<a
 											href='#'
-											className='bg-white text-[#351e5e] rounded-full p-1 h-10 w-10 flex items-center justify-center'
+											className='bg-white! text-[#351e5e]! rounded-full p-1 h-10 w-10 flex items-center justify-center'
 										>
 											<FacebookFilled />
 										</a>
 										<a
 											href='#'
-											className='bg-white text-[#351e5e] rounded-full p-1 h-10 w-10 flex items-center justify-center text-xl font-bold'
+											className='bg-white! text-[#351e5e]! rounded-full p-1 h-10 w-10 flex items-center justify-center text-xl font-bold'
 										>
 											Z
 										</a>{' '}
 										{/* Zalo giả lập */}
 										<a
 											href='#'
-											className='bg-white text-[#351e5e] rounded-full p-1 h-10 w-10 flex items-center justify-center'
+											className='bg-white! text-[#351e5e]! rounded-full p-1 h-10 w-10 flex items-center justify-center'
 										>
 											<YoutubeFilled />
 										</a>
 										<a
 											href='#'
-											className='bg-white text-[#351e5e] rounded-full p-1 h-10 w-10 flex items-center justify-center'
+											className='bg-white! text-[#351e5e]! rounded-full p-1 h-10 w-10 flex items-center justify-center'
 										>
 											<LinkedinFilled />
 										</a>

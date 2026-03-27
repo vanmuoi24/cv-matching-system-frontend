@@ -1,12 +1,8 @@
 import {
   FileTextOutlined,
   StarOutlined,
-  CarOutlined,
-  BellOutlined,
   UserOutlined,
-  RightOutlined,
 } from "@ant-design/icons";
-import { Switch } from "antd";
 
 interface ProfileSidebarProps {
   activeMenu: string;
@@ -20,8 +16,6 @@ const ProfileSidebar = ({ activeMenu, setActiveMenu }: ProfileSidebarProps) => {
   const menuItems = [
     { id: "profile", label: "Hồ sơ của tôi", icon: <FileTextOutlined /> },
     { id: "cv", label: "Việc làm đã ứng tuyển", icon: <StarOutlined /> },
-    { id: "jobs", label: "Quản lý việc làm", icon: <CarOutlined />, hasArrow: true },
-    { id: "support", label: "Hỗ trợ và thông báo", icon: <BellOutlined />, hasArrow: true },
     { id: "account", label: "Quản lý tài khoản", icon: <UserOutlined /> },
   ];
 
@@ -43,13 +37,6 @@ const ProfileSidebar = ({ activeMenu, setActiveMenu }: ProfileSidebarProps) => {
         </div>
       </div>
 
-      {/* Toggle Box */}
-      <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between gap-3">
-        <span className="text-gray-700 font-medium text-sm">
-          Cho phép Nhà tuyển dụng tìm bạn
-        </span>
-        <Switch />
-      </div>
 
       {/* Menu */}
       <div className="space-y-2">
@@ -67,9 +54,6 @@ const ProfileSidebar = ({ activeMenu, setActiveMenu }: ProfileSidebarProps) => {
               {item.icon}
               <span className="font-medium">{item.label}</span>
             </div>
-            {item.hasArrow && (
-              <RightOutlined className="text-gray-400 text-xs" />
-            )}
           </div>
         ))}
       </div>

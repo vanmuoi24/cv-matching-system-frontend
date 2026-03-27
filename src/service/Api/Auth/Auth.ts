@@ -1,6 +1,7 @@
 import type { Ilogin, IRegister } from '../../../types/Auth.ts';
 import instance from '../../Axios/Axios.ts';
 import type { AxiosResponse } from '../../../types/ResponseAPI.ts';
+import type { IChangePasswordRequest } from '../../../types/ChangePassword';
 
 const LoginApi = (data: Ilogin): Promise<AxiosResponse> => {
 	return instance.post('/users/login', data);
@@ -8,6 +9,12 @@ const LoginApi = (data: Ilogin): Promise<AxiosResponse> => {
 
 const RegisterApi = (data: IRegister): Promise<AxiosResponse> => {
 	return instance.post('/users/register', data);
+};
+
+const ChangePasswordApi = (
+	data: IChangePasswordRequest,
+): Promise<AxiosResponse> => {
+	return instance.post('/users/Change-password', data);
 };
 
 const LogoutApi = (): void => {
@@ -24,4 +31,4 @@ const LogoutApi = (): void => {
 	}
 };
 
-export { LoginApi, RegisterApi, LogoutApi };
+export { LoginApi, RegisterApi, LogoutApi, ChangePasswordApi };

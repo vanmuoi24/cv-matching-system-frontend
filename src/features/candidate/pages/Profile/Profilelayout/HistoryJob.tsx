@@ -1,235 +1,206 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Heart, MapPin, DollarSign, Lightbulb } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
+import { MapPin, DollarSign, Calendar, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { IApplication } from '../../../../../types/TypeApplication';
-import type { IJob } from '../../../../../types/TypeJob';
 import { formatSalary } from '../../../../../shared/utils/formatSalary';
-import { JobsApi } from '../../../../../service/Api/Job/Job';
+import { GetApplicationsByCandidateId } from '../../../../../service/Api/Application/Application';
+import { Spin } from 'antd';
 
-// Remove unused Status type
-
-// Remove unused Job type
-
-// Remove fakeAppliedJobs
-
-// Suggested Jobs logic will be dynamic
-
-const statusStyle = {
-	pending: 'bg-yellow-100 text-yellow-700',
-	interview: 'bg-blue-100 text-blue-700',
-	rejected: 'bg-red-100 text-red-700',
-	accepted: 'bg-green-100 text-green-700',
+const statusLabel: Record<string, string> = {
+	all: 'Tất cả',
+	submitted: 'Đã ứng tuyển',
+	rejected: 'Đã từ chối',
 };
 
-const statusLabel = {
-	pending: 'Đang chờ',
-	interview: 'Phòng vấn',
-	rejected: 'Từ chối',
-	accepted: 'Đã nhận',
+const statusStyle: Record<string, string> = {
+	all: 'bg-gray-100 text-gray-700 border-gray-200',
+	submitted: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+	rejected: 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
 const HistoryJob = () => {
 	const [statusFilter, setStatusFilter] = useState<string>('all');
-	const [suggestedJobs, setSuggestedJobs] = useState<IJob[]>([]);
+	const [appliedJobs, setAppliedJobs] = useState<IApplication[]>([]);
+	const [loading, setLoading] = useState(true);
 
 	const userLocal = localStorage.getItem('user');
 	const user = useMemo(
 		() => (userLocal ? JSON.parse(userLocal) : null),
 		[userLocal],
 	);
-	const appliedJobs: IApplication[] = useMemo(
-		() => user?.applicationList || [],
-		[user],
-	);
 
 	useEffect(() => {
-		const fetchSuggestions = async () => {
+		const fetchHistory = async () => {
+			if (!user?.id) return;
 			try {
-				const res = await JobsApi();
-				if (res.code === 1000 && res.result) {
-					const allJobs: IJob[] = res.result;
-
-					// Get applied job IDs
-					const appliedJobIds = new Set(appliedJobs.map((app) => app.job?.id));
-
-					// Get frequent categories from applied jobs
-					const categories = appliedJobs
-						.map((app) => app.job?.category)
-						.filter(Boolean);
-					const mostFreqCategory =
-						categories.length > 0
-							? categories
-									.sort(
-										(a, b) =>
-											categories.filter((v) => v === a).length -
-											categories.filter((v) => v === b).length,
-									)
-									.pop()
-							: null;
-
-					// Filter suggestions: same category OR recent, and not yet applied
-					const filtered = allJobs
-						.filter(
-							(job) =>
-								!appliedJobIds.has(job.id) &&
-								(mostFreqCategory ? job.category === mostFreqCategory : true),
-						)
-						.slice(0, 4);
-
-					setSuggestedJobs(filtered);
+				setLoading(true);
+				const res = await GetApplicationsByCandidateId(user.id);
+				if (res && res.result) {
+					setAppliedJobs(res.result);
 				}
 			} catch (error) {
-				console.error('Fetch suggestions error:', error);
+				console.error('Fetch history error:', error);
+			} finally {
+				setLoading(false);
 			}
 		};
-		fetchSuggestions();
-	}, [appliedJobs]);
+		fetchHistory();
+	}, [user?.id]);
 
 	const filteredJobs = useMemo(() => {
 		if (statusFilter === 'all') return appliedJobs;
-		return appliedJobs.filter(
-			(app) => app.status?.toLowerCase() === statusFilter.toLowerCase(),
-		);
+		return appliedJobs.filter((app) => {
+			const status = (app.status || '').toString().trim().toLowerCase();
+			return status === statusFilter.toLowerCase();
+		});
 	}, [statusFilter, appliedJobs]);
 
-	return (
-		<div className=' min-h-screen p-6'>
-			<div className='max-w-6xl mx-auto space-y-10'>
-				{/* Header */}
-				<div className='flex justify-between items-center'>
-					<h1 className='text-2xl font-bold text-gray-800'>
-						Việc làm đã ứng tuyển
-					</h1>
+	if (loading) {
+		return (
+			<div className='min-h-[400px] flex flex-col items-center justify-center gap-4'>
+				<Spin size='large' />
+				<p className='text-gray-500 font-medium animate-pulse'>
+					Đang tải lịch sử ứng tuyển...
+				</p>
+			</div>
+		);
+	}
 
-					<div className='flex items-center gap-3'>
-						<span className='text-gray-600 font-medium'>Bộ lọc:</span>
+	return (
+		<div className='min-h-screen pb-12 transition-all duration-500'>
+			<div className='max-w-6xl mx-auto space-y-8'>
+				{/* Header Section */}
+				<div className='flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-3xl shadow-sm border border-gray-100'>
+					<div className='space-y-1'>
+						<h1 className='text-3xl font-black text-gray-900 tracking-tight'>
+							Lịch sử ứng tuyển
+						</h1>
+						<p className='text-gray-500 font-medium'>
+							Bạn đã ứng tuyển tổng cộng{' '}
+							<span className='text-blue-600 font-bold'>
+								{appliedJobs.length}
+							</span>{' '}
+							công việc
+						</p>
+					</div>
+
+					<div className='flex items-center gap-4 bg-gray-50 p-2 rounded-2xl border border-gray-100'>
+						<div className='flex items-center gap-2 px-3 text-gray-400'>
+							<Search size={18} />
+						</div>
 						<select
-							className='border rounded-xl px-4 py-2 bg-white shadow-sm'
+							className='bg-transparent border-none focus:ring-0 text-gray-700 font-bold pr-8 py-2 cursor-pointer'
 							value={statusFilter}
 							onChange={(e) => setStatusFilter(e.target.value)}
 						>
-							<option value='all'>Tất cả</option>
-							<option value='pending'>Đang chờ</option>
-							<option value='interview'>Phỏng vấn</option>
-							<option value='rejected'>Từ chối</option>
-							<option value='accepted'>Đã nhận</option>
+							{Object.entries(statusLabel).map(([key, label]) => (
+								<option key={key} value={key}>
+									{label}
+								</option>
+							))}
 						</select>
 					</div>
 				</div>
 
-				{/* Applied Jobs */}
-				{filteredJobs.length === 0 ? (
-					<div className='bg-white rounded-2xl shadow-sm p-12 text-center'>
-						<h2 className='text-xl font-semibold text-gray-600'>
-							Không có công việc phù hợp
-						</h2>
-					</div>
-				) : (
-					<div className='grid md:grid-cols-2 gap-6'>
-						{filteredJobs.map((app) => (
-							<motion.div
-								key={app.id}
-								whileHover={{ scale: 1.02 }}
-								className='bg-white rounded-2xl shadow-sm p-6 transition border border-gray-50'
-							>
-								<div className='flex justify-between items-start'>
-									<div>
-										<h3 className='text-lg font-semibold text-gray-800 line-clamp-1'>
-											{app.job?.title}
-										</h3>
-										<p className='text-gray-600 text-sm mt-1 truncate'>
-											{app.job?.company?.name}
-										</p>
-									</div>
-
-									<span
-										className={`px-3 py-1 rounded-full text-xs font-medium ${
-											app.status.toLowerCase() === 'pending'
-												? statusStyle.pending
-												: app.status.toLowerCase() === 'interview'
-													? statusStyle.interview
-													: app.status.toLowerCase() === 'accepted'
-														? statusStyle.accepted
-														: statusStyle.rejected
-										}`}
+				{/* Jobs Grid */}
+				<AnimatePresence mode='popLayout'>
+					{filteredJobs.length === 0 ? (
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							className='bg-white rounded-3xl shadow-sm p-20 text-center border-2 border-dashed border-gray-100'
+						>
+							<div className='w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300'>
+								<Search size={40} />
+							</div>
+							<h2 className='text-2xl font-bold text-gray-800 mb-2'>
+								Không tìm thấy kết quả
+							</h2>
+							<p className='text-gray-500 max-w-md mx-auto'>
+								Thử thay đổi bộ lọc hoặc ứng tuyển thêm các công việc mới để
+								theo dõi tiến độ của bạn nhé!
+							</p>
+						</motion.div>
+					) : (
+						<motion.div
+							layout
+							className='grid md:grid-cols-2 lg:grid-cols-2 gap-6'
+						>
+							{filteredJobs.map((app) => {
+								const status = (app.status || '')
+									.toString()
+									.trim()
+									.toLowerCase();
+								return (
+									<motion.div
+										key={app.id}
+										layout
+										initial={{ opacity: 0, scale: 0.95 }}
+										animate={{ opacity: 1, scale: 1 }}
+										exit={{ opacity: 0, scale: 0.95 }}
+										whileHover={{
+											y: -5,
+											boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)',
+										}}
+										className=' bg-white rounded-3xl shadow-sm p-8 transition-all border border-gray-100 group'
 									>
-										{app.status.toLowerCase() === 'pending'
-											? statusLabel.pending
-											: app.status.toLowerCase() === 'interview'
-												? statusLabel.interview
-												: app.status.toLowerCase() === 'accepted'
-													? statusLabel.accepted
-													: statusLabel.rejected}
-									</span>
-								</div>
+										<div className='flex justify-between items-start gap-4'>
+											<div className='space-y-1 flex-1'>
+												<div className='flex items-center gap-2 mb-2'>
+													<span className='px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-wider rounded-lg'>
+														{app.job?.category || 'Công việc'}
+													</span>
+												</div>
+												<h3 className='text-xl font-black text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors'>
+													{app.job?.title}
+												</h3>
+												<p className='text-gray-500 font-bold text-sm tracking-tight'>
+													{app.job?.company?.name}
+												</p>
+											</div>
 
-								<div className='flex items-center gap-6 mt-4 text-sm text-gray-600'>
-									<div className='flex items-center gap-1 text-purple-600 font-bold'>
-										<DollarSign size={16} />
-										<span>
-											{formatSalary(
-												app.job?.minSalary || 0,
-												app.job?.maxSalary || 0,
-											)}
-										</span>
-									</div>
+											<span
+												className={`px-4 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wide border shadow-sm shrink-0 ${
+													statusStyle[status] || statusStyle.submitted
+												}`}
+											>
+												{statusLabel[status] || 'Đã ứng tuyển'}
+											</span>
+										</div>
 
-									<div className='flex items-center gap-1'>
-										<MapPin size={16} />
-										{app.job?.location}
-									</div>
-								</div>
+										<div className='flex flex-wrap items-center gap-x-8 gap-y-3 mt-8 pb-6 border-b border-gray-50'>
+											<div className='flex items-center gap-2 text-[#4fccff] font-black'>
+												<div className='w-8 h-8 rounded-lg bg-[#4fccff]/10 flex items-center justify-center'>
+													<DollarSign size={16} />
+												</div>
+												<span className='text-[15px]'>
+													{formatSalary(
+														app.job?.minSalary || 0,
+														app.job?.maxSalary || 0,
+													)}
+												</span>
+											</div>
 
-								<div className='mt-4 pt-4 border-t border-gray-50 text-[12px] text-gray-400'>
-									Ứng tuyển vào: {new Date(app.appliedAt).toLocaleDateString()}
-								</div>
-							</motion.div>
-						))}
-					</div>
-				)}
+											<div className='flex items-center gap-2 text-gray-600 font-bold'>
+												<div className='w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center'>
+													<MapPin size={16} />
+												</div>
+												<span className='text-[14px]'>{app.job?.location}</span>
+											</div>
+										</div>
 
-				{/* Suggested Jobs */}
-				<div>
-					<div className='flex items-center gap-2 mb-4'>
-						<Lightbulb className='text-blue-500' />
-						<h2 className='text-2xl font-bold text-gray-800'>Việc làm gợi ý</h2>
-					</div>
-
-					<div className='grid md:grid-cols-2 gap-6'>
-						{suggestedJobs.map((job) => (
-							<motion.div
-								key={job.id}
-								whileHover={{ scale: 1.02 }}
-								className='bg-white rounded-2xl shadow-sm p-6 border border-gray-50'
-							>
-								<div className='flex justify-between'>
-									<div>
-										<h3 className='text-lg font-semibold text-gray-800 line-clamp-1'>
-											{job.title}
-										</h3>
-										<p className='text-gray-600 text-sm mt-1 truncate'>
-											{job.company?.name}
-										</p>
-									</div>
-
-									<Heart className='text-gray-400 hover:text-red-500 cursor-pointer transition' />
-								</div>
-
-								<div className='flex items-center gap-6 mt-4 text-sm text-gray-600'>
-									<div className='flex items-center gap-1 text-purple-600 font-bold'>
-										<DollarSign size={16} />
-										<span>{formatSalary(job.minSalary, job.maxSalary)}</span>
-									</div>
-
-									<div className='flex items-center gap-1'>
-										<MapPin size={16} />
-										{job.location}
-									</div>
-								</div>
-							</motion.div>
-						))}
-					</div>
-				</div>
+										<div className='mt-6 pt-4 border-t border-gray-50 flex items-center gap-2 text-gray-400 font-bold text-[12px]'>
+											<Calendar size={14} />
+											<span>
+												Nộp ngày: {new Date(app.appliedAt).toLocaleDateString()}
+											</span>
+										</div>
+									</motion.div>
+								);
+							})}
+						</motion.div>
+					)}
+				</AnimatePresence>
 			</div>
 		</div>
 	);

@@ -94,6 +94,7 @@ const Login = () => {
 
 					<Form.Item className='mb-3!'>
 						<button
+							type='submit'
 							disabled={loading}
 							className={`w-full transition duration-300 text-white cursor-pointer hover:bg-[#2e068b] border-none rounded-md text-base font-semibold! bg-[#542ab6] py-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
 						>

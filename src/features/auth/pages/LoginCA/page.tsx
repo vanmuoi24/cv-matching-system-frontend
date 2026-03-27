@@ -55,39 +55,46 @@ const Login = () => {
 							</p>
 						</div>
 
-						<div className='mb-4'>
-							<input
-								type='email'
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								className='w-full text-[14px] font-semibold border border-[#4fccff] rounded-lg p-2 outline-none focus:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'
-								placeholder='Nhập email'
-							/>
-						</div>
-
-						<div className='mb-4'>
-							<input
-								type='password'
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								className='w-full text-[14px] font-semibold border border-[#4fccff] rounded-lg p-2 outline-none focus:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'
-								placeholder='Nhập mật khẩu'
-							/>
-						</div>
-
-						{error && (
-							<p className='text-red-500 text-[13px] mb-2 text-center'>
-								{error}
-							</p>
-						)}
-
-						<button
-							onClick={handleLogin}
-							disabled={loading}
-							className='border w-full rounded-lg border-none bg-[#5932bc] text-white text-[14px] py-2 mt-2 font-semibold hover:bg-[#2f0d7b] transition duration-300 cursor-pointer disabled:opacity-60'
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								handleLogin();
+							}}
 						>
-							{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-						</button>
+							<div className='mb-4'>
+								<input
+									type='email'
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									className='w-full text-[14px] font-semibold border border-[#4fccff] rounded-lg p-2 outline-none focus:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'
+									placeholder='Nhập email'
+								/>
+							</div>
+
+							<div className='mb-4'>
+								<input
+									type='password'
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									className='w-full text-[14px] font-semibold border border-[#4fccff] rounded-lg p-2 outline-none focus:shadow-[0_0_0_3px_rgba(79,204,255,0.15)]'
+									placeholder='Nhập mật khẩu'
+								/>
+							</div>
+
+							{error && (
+								<p className='text-red-500 text-[13px] mb-2 text-center'>
+									{error}
+								</p>
+							)}
+
+							<button
+								type='submit'
+								disabled={loading}
+								className='border w-full rounded-lg border-none bg-[#5932bc] text-white text-[14px] py-2 mt-2 font-semibold hover:bg-[#2f0d7b] transition duration-300 cursor-pointer disabled:opacity-60'
+							>
+								{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+							</button>
+						</form>
 
 						<div className='mt-5 mb-5 flex items-center before:w-full before:h-px before:bg-[#dfdfdf] after:w-full after:h-px after:bg-[#dfdfdf]'>
 							<span className='text-gray-500 inline-block px-8'>Hoặc</span>

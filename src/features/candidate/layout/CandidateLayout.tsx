@@ -3,6 +3,7 @@ import Header from '../../../shared/components/Header';
 import Footer from '../../../shared/components/Footer';
 
 const navItems = [
+	{ to: '/ca/', label: 'Trang chủ' },
 	{ to: '/ca/job', label: 'Việc Làm' },
 	{ to: '/ca/tool', label: 'Công cụ' },
 	// { to: '/ca/blog', label: 'Cẩm nang nghề nghiệp' },
