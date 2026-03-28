@@ -1,3 +1,5 @@
+import type { IJob } from "./TypeJob";
+
 export interface IOwner {
   id: number;
   fullName: string;
@@ -18,5 +20,5 @@ export interface ICompany {
   createAt: string;   
   role: string | null;
   owner: IOwner | null;
-  job: any | null;    
+  jobList: IJob[] | null;    
 }

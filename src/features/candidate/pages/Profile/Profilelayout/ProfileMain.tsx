@@ -11,6 +11,7 @@ import {
 import { message } from "antd";
 import HistoryJob from "./HistoryJob";
 import ChangePassword from "./ChangePassword";
+import CandidateProfileEdit from "./CandidateProfileEdit";
 
 interface ProfileMainProps {
   activeMenu: string;
@@ -207,6 +208,13 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
         return (
           <div className="bg-white rounded-2xl p-8 shadow-md">
             <HistoryJob />
+          </div>
+        );
+
+      case "profile-edit":
+        return (
+          <div className="bg-white rounded-2xl p-8 shadow-md">
+            <CandidateProfileEdit />
           </div>
         );
 

@@ -4,8 +4,6 @@ import {
 	DollarOutlined,
 	EnvironmentOutlined,
 	ClockCircleOutlined,
-	TrophyOutlined,
-	HeartOutlined,
 	SendOutlined,
 	TeamOutlined,
 } from '@ant-design/icons';
@@ -111,7 +109,10 @@ const JobDetail: React.FC = () => {
 							>
 								{jobDetail.title}
 							</Title>
-							<div className='text-lg text-purple-700 font-semibold mb-4'>
+							<div 
+								className='text-lg text-purple-700 font-semibold mb-4 cursor-pointer hover:underline'
+								onClick={() => navigate(`/ca/company/${jobDetail.company?.id}`)}
+							>
 								{jobDetail.company?.name}
 							</div>
 
@@ -141,7 +142,7 @@ const JobDetail: React.FC = () => {
 								</Tag>
 							</div>
 						</div>
-						<div className='hidden lg:flex flex-col gap-3 min-w-[200px]'>
+						<div className='hidden lg:flex flex-col gap-3 min-w-50'>
 							<Button
 								type='primary'
 								size='large'
@@ -188,7 +189,7 @@ const JobDetail: React.FC = () => {
 							<section className='mb-10'>
 								<Title
 									level={4}
-									className='!mb-6 flex items-center gap-2 text-gray-800'
+									className='mb-6! flex items-center gap-2 text-gray-800'
 								>
 									<div className='w-1.5 h-6 bg-purple-600 rounded-full'></div>
 									Chi tiết công việc
@@ -223,7 +224,7 @@ const JobDetail: React.FC = () => {
 
 						{/* Skills Tags */}
 						<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-8'>
-							<Title level={4} className='!mb-6'>
+							<Title level={4} className='mb-6!'>
 								Kỹ năng & Chuyên môn
 							</Title>
 							<div className='flex flex-wrap gap-3'>
@@ -253,7 +254,7 @@ const JobDetail: React.FC = () => {
 					<div className='lg:col-span-1 space-y-6'>
 						{/* Company Card */}
 						<div className='bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden'>
-							<div className='h-2 bg-gradient-to-r from-purple-500 to-blue-500'></div>
+							<div className='h-2 bg-linear-to-r from-purple-500 to-blue-500'></div>
 							<div className='p-6 text-center'>
 								<Avatar
 									size={80}
@@ -263,7 +264,10 @@ const JobDetail: React.FC = () => {
 									{!jobDetail.company?.logoUrl &&
 										jobDetail.company?.name?.charAt(0)}
 								</Avatar>
-								<h3 className='font-bold text-xl text-gray-800 mb-1 hover:text-purple-700 transition-colors cursor-pointer'>
+								<h3 
+									className='font-bold text-xl text-gray-800 mb-1 hover:text-purple-700 transition-colors cursor-pointer'
+									onClick={() => navigate(`/ca/company/${jobDetail.company?.id}`)}
+								>
 									{jobDetail.company?.name}
 								</h3>
 							</div>
@@ -288,6 +292,7 @@ const JobDetail: React.FC = () => {
 								<Button
 									block
 									className='mt-4 h-10 border-purple-200 text-purple-700 hover:bg-purple-50'
+									onClick={() => navigate(`/ca/company/${jobDetail.company?.id}`)}
 								>
 									Xem trang công ty
 								</Button>
@@ -296,7 +301,7 @@ const JobDetail: React.FC = () => {
 
 						{/* General Info */}
 						<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-6'>
-							<Title level={4} className='!mb-6'>
+							<Title level={4} className='mb-6!'>
 								Thông tin chung
 							</Title>
 							<div className='space-y-5'>
@@ -343,7 +348,7 @@ const JobDetail: React.FC = () => {
 						{/* Similar Jobs */}
 						{similarJobs.length > 0 && (
 							<div className='bg-white rounded-xl shadow-sm border border-gray-100 p-6'>
-								<Title level={4} className='!mb-6'>
+								<Title level={4} className='mb-6!'>
 									Việc làm tương tự
 								</Title>
 								<div className='space-y-4'>

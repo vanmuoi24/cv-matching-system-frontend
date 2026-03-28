@@ -5,6 +5,7 @@ import Blog from '../pages/Blog/page';
 import Tool from '../pages/Tool/page';
 import JobList from '../pages/Job/JobList/page';
 import JobDetail from '../pages/Job/JobDetail/page';
+import CompanyDetail from '../pages/Company/CompanyDetail/page';
 import ProfilePage from '../pages/Profile/ProfilePage';
 
 const CandidateRoutes = () => {
@@ -18,6 +19,7 @@ const CandidateRoutes = () => {
 				</Route>
 				<Route path='/tool' element={<Tool />} />
 				<Route path='/blog' element={<Blog />} />
+				<Route path='/company/:companyId' element={<CompanyDetail />} />
 				<Route path='/profile' element={<ProfilePage />} />
 			</Route>
 		</Routes>
