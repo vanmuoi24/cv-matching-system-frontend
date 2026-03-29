@@ -6,14 +6,10 @@ const GetCandidateProfileById = (id: number): Promise<AxiosResponse> => {
 }
 
 const CreateCandidateProfile = (data: FormData): Promise<AxiosResponse> => {
-    return instance.post('/candidate-profiles', data, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    })
+    return instance.post('/candidate-profiles', data)
 }
 
-const UpdateCandidateProfile = (id: number, data: Record<string, unknown>): Promise<AxiosResponse> => {
+const UpdateCandidateProfile = (id: number, data: FormData): Promise<AxiosResponse> => {
     return instance.post(`/candidate-profiles/update/${id}`, data)
 }
 

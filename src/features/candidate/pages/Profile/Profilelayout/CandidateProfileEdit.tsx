@@ -7,7 +7,12 @@ import { CreateCandidateProfile, UpdateCandidateProfile } from "../../../../../s
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
-const CandidateProfileEdit: React.FC = () => {
+interface CandidateProfileEditProps {
+    onCancel?: () => void;
+    onSuccess?: () => void;
+}
+
+const CandidateProfileEdit: React.FC<CandidateProfileEditProps> = ({ onCancel, onSuccess }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -40,12 +45,26 @@ const CandidateProfileEdit: React.FC = () => {
         try {
             if (profile) {
                 // Update
-                const res = await UpdateCandidateProfile(user.id, values);
+                const formData = new FormData();
+                formData.append("summary", values.summary || "");
+                formData.append("skills", values.skills || "");
+                formData.append("experienceYear", values.experienceYear || "");
+                formData.append("cvText", values.cvText || "");
+                
+                if (fileList.length > 0) {
+                    const fileToUpload = fileList[0].originFileObj || (fileList[0] as unknown);
+                    if (fileToUpload instanceof File || fileToUpload instanceof Blob) {
+                        formData.append("cvFile", fileToUpload as File);
+                    }
+                }
+
+                const res = await UpdateCandidateProfile(user.id, formData);
                 if (res.code === 1000) {
                     message.success("Cập nhật hồ sơ thành công!");
                     // Update local storage
                     const newUser = { ...user, profile: res.result };
                     localStorage.setItem("user", JSON.stringify(newUser));
+                    if (onSuccess) onSuccess();
                 }
             } else {
                 // Create
@@ -55,8 +74,12 @@ const CandidateProfileEdit: React.FC = () => {
                 formData.append("skills", values.skills || "");
                 formData.append("experienceYear", values.experienceYear || "");
                 formData.append("cvText", values.cvText || "");
-                if (fileList.length > 0 && fileList[0].originFileObj) {
-                    formData.append("cvFile", fileList[0].originFileObj as File);
+                
+                if (fileList.length > 0) {
+                    const fileToUpload = fileList[0].originFileObj || (fileList[0] as unknown);
+                    if (fileToUpload instanceof File || fileToUpload instanceof Blob) {
+                        formData.append("cvFile", fileToUpload as File);
+                    }
                 }
 
                 const res = await CreateCandidateProfile(formData);
@@ -64,11 +87,65 @@ const CandidateProfileEdit: React.FC = () => {
                     message.success("Tạo hồ sơ thành công!");
                     const newUser = { ...user, profile: res.result };
                     localStorage.setItem("user", JSON.stringify(newUser));
+                    if (onSuccess) onSuccess();
                 }
             }
         } catch (error) {
             console.error(error);
             message.error("Có lỗi xảy ra khi lưu hồ sơ!");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUploadCVNow = async () => {
+        if (!fileList.length || !user?.id) {
+            message.warning("Vui lòng chọn file CV trước khi lưu");
+            return;
+        }
+        const fileToUpload = fileList[0].originFileObj || (fileList[0] as unknown);
+        if (!(fileToUpload instanceof File || fileToUpload instanceof Blob)) {
+            message.info("File CV không có sự thay đổi");
+            return;
+        }
+
+        const values = form.getFieldsValue();
+        if (!profile && (!values.skills || values.skills.trim() === "")) {
+            message.error("Vui lòng nhập 'Kỹ năng chuyên môn' trước khi lưu tài liệu lần đầu tiên!");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append("cvFile", fileToUpload as File);
+            
+            formData.append("summary", values.summary || "");
+            formData.append("skills", values.skills || "");
+            formData.append("experienceYear", values.experienceYear || "");
+            formData.append("cvText", values.cvText || "");
+
+            if (profile) {
+                const res = await UpdateCandidateProfile(user.id, formData);
+                if (res.code === 1000) {
+                    message.success("Đã lưu trực tiếp file CV thành công!");
+                    const newUser = { ...user, profile: res.result };
+                    localStorage.setItem("user", JSON.stringify(newUser));
+                    if (onSuccess) onSuccess();
+                }
+            } else {
+                formData.append("userId", user.id.toString());
+                const res = await CreateCandidateProfile(formData);
+                if (res.code === 1000) {
+                    message.success("Đã tạo hồ sơ chứa CV thành công!");
+                    const newUser = { ...user, profile: res.result };
+                    localStorage.setItem("user", JSON.stringify(newUser));
+                    if (onSuccess) onSuccess();
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            message.error("Lỗi khi tải lên file CV!");
         } finally {
             setLoading(false);
         }
@@ -152,12 +229,40 @@ const CandidateProfileEdit: React.FC = () => {
                             className="md:col-span-2"
                         >
                             <div className="p-6 border-2 border-dashed border-purple-100 rounded-2xl bg-purple-50/30">
-                                <Upload {...uploadProps} maxCount={1}>
-                                    <Button icon={<UploadOutlined />} className="rounded-lg h-10 border-purple-200 text-purple-700 hover:bg-purple-100">Chọn file CV</Button>
-                                </Upload>
-                                <div className="mt-2 text-xs text-gray-400">
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <Upload {...uploadProps} maxCount={1}>
+                                        <Button icon={<UploadOutlined />} className="rounded-lg h-10 border-purple-200 text-purple-700 hover:bg-purple-100">Chọn file CV mới</Button>
+                                    </Upload>
+                                    
+                                    <Button 
+                                        type="primary" 
+                                        className="h-10 bg-indigo-600 rounded-lg shadow-sm"
+                                        loading={loading}
+                                        onClick={handleUploadCVNow}
+                                        icon={<SaveOutlined />}
+                                    >
+                                        Xác nhận Lưu CV này
+                                    </Button>
+                                    
+                                </div>
+                                <div className="mt-2 text-xs text-gray-500">
                                     Dung lượng tối đa 5MB. Định dạng hỗ trợ: PDF, DOC, DOCX.
                                 </div>
+                                {profile?.cvFileUrl && (
+                                    <div className="mt-4 pt-4 border-t border-purple-100">
+                                        <Text className="text-gray-500 text-sm mb-2 block">CV hiện tại của bạn:</Text>
+                                        <Button 
+                                            type="link" 
+                                            href={profile.cvFileUrl} 
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            icon={<SaveOutlined />}
+                                            className="px-0 font-medium text-purple-600 hover:text-purple-800"
+                                        >
+                                            Xem / Tải về CV đã lưu
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </Form.Item>
                     </div>
@@ -168,6 +273,7 @@ const CandidateProfileEdit: React.FC = () => {
                         <Button 
                             size="large" 
                             className="rounded-xl px-10 h-12 font-medium border-gray-200"
+                            onClick={onCancel}
                         >
                             Hủy bỏ
                         </Button>

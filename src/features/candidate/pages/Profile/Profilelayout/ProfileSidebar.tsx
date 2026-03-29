@@ -2,7 +2,6 @@ import {
   FileTextOutlined,
   StarOutlined,
   UserOutlined,
-  EditOutlined,
 } from "@ant-design/icons";
 
 interface ProfileSidebarProps {
@@ -16,7 +15,6 @@ const ProfileSidebar = ({ activeMenu, setActiveMenu }: ProfileSidebarProps) => {
 
   const menuItems = [
     { id: "profile", label: "Hồ sơ của tôi", icon: <FileTextOutlined /> },
-    { id: "profile-edit", label: "Chỉnh sửa hồ sơ", icon: <EditOutlined /> },
     { id: "cv", label: "Việc làm đã ứng tuyển", icon: <StarOutlined /> },
     { id: "account", label: "Quản lý tài khoản", icon: <UserOutlined /> },
   ];
