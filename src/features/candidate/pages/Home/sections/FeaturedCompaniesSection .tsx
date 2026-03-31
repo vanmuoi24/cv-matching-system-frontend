@@ -1,5 +1,6 @@
 import { RiseOutlined } from '@ant-design/icons';
 import achieveIcon from '../../../../../assets/icons/achieveIcon.png';
+import { useNavigate } from 'react-router-dom';
 
 import Container from '../../../../../shared/components/Container';
 import { GetListCompany } from '../../../../../service/Api/Company/Company';
@@ -7,6 +8,7 @@ import type { ICompany } from '../../../../../types/TypeCompany';
 import { useEffect, useState } from 'react';
 
 const FeaturedCompanies = () => {
+	const navigate = useNavigate();
 	const [dataCompany, setDataCompany] = useState<ICompany[]>([]);
 	const fechDataCompany = async () => {
 		try {
@@ -35,25 +37,18 @@ const FeaturedCompanies = () => {
 				<div className='flex justify-between items-center mb-6'>
 					<div className='flex items-center gap-3'>
 						<img src={achieveIcon} alt='AchieveIcon icon' />
-						<h2 className='ml-2 text-[28px] font-semibold bg-linear-to-r from-[#f6b800] to-[#fae68f] bg-clip-text text-transparent'>
+						<h2 className='ml-2 text-[28px] font-semibold bg-gradient-to-r from-[#f6b800] to-[#fae68f] bg-clip-text text-transparent'>
 							Công ty nổi bật
 						</h2>
 					</div>
-
-					{/* <a
-						href='#'
-						className='text-purple-600 font-medium hover:underline flex items-center gap-1 hover:text-purple-700 transition-colors'
-					>
-						Xem tất cả <RightOutlined style={{ fontSize: '12px' }} />
-					</a> */}
 				</div>
 
 				{/* --- LIST COMPANIES (GRID / SCROLL) --- */}
-				{/* Sử dụng Grid để tự động xuống dòng trên mobile, hoặc flex để cuộn ngang */}
 				<div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'>
 					{dataCompany.slice(0, 6).map((company) => (
 						<div
 							key={company.id}
+							onClick={() => navigate(`/ca/company/${company.id}`)}
 							className='
               group cursor-pointer
               border border-gray-200 rounded-xl p-4 
@@ -85,6 +80,3 @@ const FeaturedCompanies = () => {
 };
 
 export default FeaturedCompanies;
-function fechDataCompany() {
-	throw new Error('Function not implemented.');
-}

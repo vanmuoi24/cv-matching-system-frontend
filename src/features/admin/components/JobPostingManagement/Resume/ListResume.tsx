@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Modal,
   Table,
@@ -45,7 +44,6 @@ const ListResume: React.FC<ListResumeProps> = ({
   onClose,
   listResume,
 }) => {
-  const navigate = useNavigate();
 
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [rejectModal, setRejectModal] = useState(false);

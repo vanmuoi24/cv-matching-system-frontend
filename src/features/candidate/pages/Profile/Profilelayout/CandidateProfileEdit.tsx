@@ -253,7 +253,7 @@ const CandidateProfileEdit: React.FC<CandidateProfileEditProps> = ({ onCancel, o
                                         <Text className="text-gray-500 text-sm mb-2 block">CV hiện tại của bạn:</Text>
                                         <Button 
                                             type="link" 
-                                            href={profile.cvFileUrl} 
+                                            href={profile.cvFileUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             icon={<SaveOutlined />}

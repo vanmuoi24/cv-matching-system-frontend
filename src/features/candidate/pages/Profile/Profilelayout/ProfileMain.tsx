@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { message } from "antd";
+import { message, Modal } from "antd";
 import HistoryJob from "./HistoryJob";
 import ChangePassword from "./ChangePassword";
 import { UpdateUser } from "../../../../../service/Api/User/UserAPI";
@@ -16,8 +16,6 @@ import {
   RocketOutlined, 
   EditOutlined, 
   FileTextOutlined,
-  CalendarOutlined,
-  PhoneOutlined,
   EyeOutlined
 } from "@ant-design/icons";
 
@@ -27,6 +25,9 @@ interface ProfileMainProps {
 
 const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewModalVisible, setPreviewModalVisible] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -56,8 +57,18 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
         cvText: formData.get("cvText")
       };
 
+      let freshProfile = null;
       if (profile) {
-        await UpdateCandidateProfile(user.id, profileData);
+        const updateFormData = new FormData();
+        updateFormData.append("summary", profileData.summary?.toString() || "");
+        updateFormData.append("skills", profileData.skills?.toString() || "");
+        updateFormData.append("experienceYear", profileData.experienceYear?.toString() || "");
+        updateFormData.append("cvText", profileData.cvText?.toString() || "");
+        if (cvFile) {
+          updateFormData.append("cvFile", cvFile);
+        }
+        const res = await UpdateCandidateProfile(user.id, updateFormData);
+        if (res.code === 1000) freshProfile = res.result;
       } else {
         const createFormData = new FormData();
         createFormData.append("userId", user.id.toString());
@@ -68,17 +79,17 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
         if (cvFile) {
           createFormData.append("cvFile", cvFile);
         }
-        await CreateCandidateProfile(createFormData);
+        const res = await CreateCandidateProfile(createFormData);
+        if (res.code === 1000) freshProfile = res.result;
       }
 
-      // Update local storage - in real app would get fresh data from server
+      // Update local storage
       const updatedUser = { 
         ...user, 
         fullName: userData.fullName,
-        profile: { 
+        profile: freshProfile || { 
           ...user.profile, 
-          ...profileData,
-          cvFileUrl: cvFile ? URL.createObjectURL(cvFile) : user.profile?.cvFileUrl 
+          ...profileData
         } 
       };
       localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -97,17 +108,18 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
-    if (!allowedTypes.includes(file.type)) {
-      message.error("Chỉ hỗ trợ file PDF, DOC, DOCX");
+    if (file.type !== "application/pdf") {
+      message.error("Định dạng không hợp lệ! Vui lòng chỉ tải lên file PDF.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       message.error("File tối đa 5MB");
       return;
     }
-    setCvFile(file);
-    message.success("Tải file thành công");
+    
+    setPreviewFile(file);
+    setPreviewModalVisible(true);
+    e.target.value = ''; // clear input so the same file can be selected again
   };
 
   // ================== RENDER CONTENT ==================
@@ -312,8 +324,8 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
                     <div className="relative z-10">
                       <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/5 transition-all text-center">
                         <UploadOutlined className="text-3xl text-white/50 mb-3" />
-                        <span className="text-white text-sm font-black uppercase tracking-wider">Tải lên CV</span>
-                        <input type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.doc,.docx" />
+                        <span className="text-white text-sm font-black uppercase tracking-wider">Tải lên CV (PDF)</span>
+                        <input type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
                       </label>
                     </div>
                   ) : (
@@ -328,22 +340,45 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
                         </div>
                       </div>
                       
-                      <div className="mt-4 grid grid-cols-2 gap-3">
-                        {(cvFile || profile?.cvFileUrl) && (
-                          <button 
-                            type="button"
-                            onClick={() => window.open(cvFile ? URL.createObjectURL(cvFile) : profile?.cvFileUrl, "_blank")}
-                            className="bg-[#4fccff] py-3 rounded-xl text-center text-[#2f0d7b] text-[11px] font-black uppercase tracking-widest cursor-pointer hover:bg-[#3db8e6] transition-all flex items-center justify-center gap-2"
-                          >
-                            <EyeOutlined />
-                            Xem CV
-                          </button>
-                        )}
-                        <label className="bg-white/10 py-3 rounded-xl text-center text-white text-[11px] font-black uppercase tracking-widest cursor-pointer hover:bg-white/20 transition-all flex items-center justify-center gap-2">
-                          Thay đổi
-                          <input type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.doc,.docx" />
-                        </label>
-                      </div>
+                      {loading && uploadProgress > 0 ? (
+                        <div className="mt-4 bg-white/5 rounded-xl p-3 border border-white/10">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-white/70 text-[10px] uppercase font-bold tracking-widest">Đang tải lên</span>
+                            <span className="text-[#4fccff] text-[10px] font-black">{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-black/20 rounded-full h-1.5 overflow-hidden">
+                            <div 
+                              className="bg-gradient-to-r from-[#4fccff] to-white h-full rounded-full transition-all duration-300 relative" 
+                              style={{ width: `${uploadProgress}%` }}
+                            >
+                              <div className="absolute inset-0 bg-white/30 w-full h-full animate-pulse" />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 grid grid-cols-2 gap-3">
+                          {(cvFile || profile?.cvFileUrl) && (
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                if (cvFile) {
+                                  window.open(URL.createObjectURL(cvFile), "_blank");
+                                } else if (profile?.cvFileUrl) {
+                                  window.open(profile.cvFileUrl, "_blank");
+                                }
+                              }}
+                              className="bg-[#4fccff] py-3 rounded-xl text-center text-[#2f0d7b] text-[11px] font-black uppercase tracking-widest cursor-pointer hover:bg-[#3db8e6] transition-all flex items-center justify-center gap-2"
+                            >
+                              <EyeOutlined />
+                              Xem CV
+                            </button>
+                          )}
+                          <label className="bg-white/10 py-3 rounded-xl text-center text-white text-[11px] font-black uppercase tracking-widest cursor-pointer hover:bg-white/20 transition-all flex items-center justify-center gap-2">
+                            Thay đổi
+                            <input type="file" className="hidden" onChange={handleFileChange} accept=".pdf" />
+                          </label>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -408,7 +443,105 @@ const ProfileMain = ({ activeMenu }: ProfileMainProps) => {
     }
   };
 
-  return <>{renderContent()}</>;
+  return (
+    <>
+      {renderContent()}
+      <Modal
+        title={
+          <div className="flex items-center gap-2 text-[#2f0d7b] font-black text-lg">
+            <ThunderboltFilled className="text-purple-500" />
+            XÁC NHẬN SỬ DỤNG CV NÀY
+          </div>
+        }
+        open={previewModalVisible}
+        onCancel={() => {
+          setPreviewModalVisible(false);
+          setPreviewFile(null);
+        }}
+        onOk={async () => {
+          setPreviewModalVisible(false);
+          setLoading(true);
+          setUploadProgress(0);
+
+          const config = {
+            onUploadProgress: (progressEvent: any) => {
+              if (progressEvent.total) {
+                const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setUploadProgress(percentCompleted);
+              }
+            }
+          };
+
+          try {
+              let freshProfile = null;
+              if (profile) {
+                const updateFormData = new FormData();
+                updateFormData.append("cvFile", previewFile as File);
+                const res = await UpdateCandidateProfile(user.id, updateFormData, config);
+                if (res.code === 1000) freshProfile = res.result;
+              } else {
+                const createFormData = new FormData();
+                createFormData.append("userId", user.id.toString());
+                createFormData.append("skills", "Chưa cập nhật");
+                createFormData.append("cvFile", previewFile as File);
+                const res = await CreateCandidateProfile(createFormData, config);
+                if (res.code === 1000) freshProfile = res.result;
+              }
+
+              if (freshProfile) {
+                const updatedUser = { 
+                  ...user, 
+                  profile: freshProfile 
+                };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                message.success("Đã ghi nhận và lưu CV thành công vào hệ thống!");
+              }
+          } catch (err) {
+              console.error(err);
+              message.error("Có lỗi xảy ra khi lưu trữ CV!");
+          } finally {
+              setTimeout(() => {
+                  setLoading(false);
+                  setCvFile(previewFile);
+                  setUploadProgress(0);
+              }, 500);
+          }
+        }}
+        okText={<span className="font-bold tracking-wider">LƯU CẬP NHẬT GẦN NHẤT</span>}
+        cancelText={<span className="font-bold text-gray-400">HỦY BỎ</span>}
+        okButtonProps={{ className: "bg-[#2f0d7b] hover:bg-purple-800 border-none px-6" }}
+        cancelButtonProps={{ className: "border-gray-200 hover:bg-gray-50" }}
+        width={850}
+        centered
+        destroyOnClose
+      >
+        {previewFile && previewFile.type === "application/pdf" ? (
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-2xl mt-4 max-h-[70vh] overflow-hidden border-2 border-dashed border-gray-200 shadow-inner">
+            <h3 className="mb-4 font-bold text-gray-500 flex justify-between items-center text-sm">
+              <span>Bản XEM TRƯỚC HỒ SƠ</span>
+              <span className="text-purple-500 bg-purple-50 px-3 py-1 rounded-full text-xs">{previewFile.name}</span>
+            </h3>
+            <iframe 
+              src={URL.createObjectURL(previewFile)} 
+              className="w-full h-[60vh] rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.05)] bg-white" 
+              title="CV Preview"
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center text-gray-500 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl mt-4 border-2 border-dashed border-gray-200 shadow-inner">
+            <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mb-6 shadow-md">
+              <FileTextOutlined className="text-4xl text-purple-600" />
+            </div>
+            <p className="font-black text-2xl text-[#2f0d7b] mb-2">{previewFile?.name}</p>
+            <p className="text-gray-500 max-w-sm mb-6 leading-relaxed">Bộ công cụ của chúng tôi đang trong quá trình nâng cấp ứng dụng. Trình duyệt hiện tại chưa hỗ trợ xem trực tiếp thẻ Document (Word).</p>
+            <div className="bg-purple-50 px-6 py-3 rounded-xl inline-flex flex-col gap-1 items-center border border-purple-100">
+              <span className="text-sm font-bold text-purple-700">Vui lòng tiếp tục cập nhật vào hệ thống nếu file này hợp lệ.</span>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </>
+  );
 };
 
 export default ProfileMain;

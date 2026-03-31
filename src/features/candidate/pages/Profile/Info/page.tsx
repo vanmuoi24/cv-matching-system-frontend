@@ -48,11 +48,9 @@ const Info = () => {
     // Validate type
     const allowed = [
       "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
     if (!allowed.includes(file.type)) {
-      alert("Vui lòng chọn file định dạng pdf, doc, hoặc docx");
+      alert("Vui lòng chọn file định dạng pdf");
       return;
     }
 
